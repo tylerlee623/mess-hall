@@ -208,9 +208,13 @@
   }
   .extra-remove:hover{color:var(--brick);}
   .shop-cats{display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:16px;}
-  .shop-cat{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:14px 16px;}
+  .shop-cat{background:var(--panel); border:2px solid var(--line); border-radius:var(--radius); padding:14px 16px; transition:border-color .15s ease, background .15s ease;}
+  .shop-cat.drag-over-cat{border-color:var(--accent); background:#2A2410;}
+  .shop-cat-empty{font-family:var(--mono); font-size:11px; color:var(--ink-faint); text-align:center; padding:14px 4px; border:1.5px dashed var(--line-soft); border-radius:4px;}
   .shop-cat h4{font-family:var(--cond); font-size:14px; text-transform:uppercase; letter-spacing:0.04em; color:var(--accent); margin-bottom:8px;}
-  .shop-row{display:flex; align-items:flex-start; gap:9px; padding:6px 0; border-top:1px dashed var(--line-soft);}
+  .shop-row{display:flex; align-items:flex-start; gap:9px; padding:6px 0; border-top:1px dashed var(--line-soft); cursor:grab;}
+  .shop-row.dragging-row{opacity:0.35;}
+  .drag-handle{color:var(--ink-faint); font-size:13px; line-height:1.4; flex-shrink:0; margin-top:2px; user-select:none;}
   .shop-row:first-of-type{border-top:none;}
   .shop-check{width:18px; height:18px; border-radius:3px; border:1.5px solid var(--ink-faint); flex-shrink:0; margin-top:2px; background:transparent; display:flex; align-items:center; justify-content:center;}
   .shop-check.on{background:var(--accent); border-color:var(--accent); color:#1A1502; font-size:12px;}
@@ -543,6 +547,28 @@ function addExtraItem(){
 }
 function removeExtraItem(id){
   state.extraItems = state.extraItems.filter(i => i.id !== id);
+  render();
+}
+function reassignIngredientCategory(payload, newCat){
+  if(!payload || payload.cat === newCat) return;
+  if(payload.isManual){
+    const item = state.extraItems.find(i => i.id === payload.extraId);
+    if(item){ item.cat = newCat; showToast(`Moved "${item.name}" to ${newCat}`); }
+  } else {
+    const nameLower = (payload.name || "").toLowerCase();
+    let touched = 0;
+    state.recipes.forEach(r => {
+      r.ingredients.forEach(ing => {
+        if(ing.name.toLowerCase() === nameLower && ing.cat !== newCat){
+          ing.cat = newCat;
+          touched++;
+        }
+      });
+    });
+    showToast(touched
+      ? `Moved "${payload.name}" to ${newCat} — fixed in ${touched} recipe ingredient${touched!==1?'s':''} for next time`
+      : `Moved "${payload.name}" to ${newCat}`);
+  }
   render();
 }
 
@@ -1062,7 +1088,6 @@ function renderSupply(){
   const byCat = {};
   agg.forEach(entry => { (byCat[entry.cat] ||= []).push(entry); });
   Object.values(byCat).forEach(list => list.sort((a,b)=>a.name.localeCompare(b.name)));
-  const cats = CAT_ORDER.filter(c => byCat[c]);
 
   const addItemRow = `
     <div class="add-item-row">
@@ -1080,7 +1105,7 @@ function renderSupply(){
     ? `<div class="supply-lede">CONSOLIDATED FROM ${state.cart.length} RECIPE${state.cart.length!==1?'S':''} · ${totalCartServings()} SERVINGS · OVERLAPPING INGREDIENTS MERGED</div>`
     : `<div class="supply-lede">${state.confirmedOnce ? "YOUR LOADOUT POOL IS EMPTY" : "NO WEEKLY LOADOUT CONFIRMED YET"} — ADD YOUR OWN ITEMS BELOW, OR HEAD TO THE BUILDER TO PULL IN RECIPE INGREDIENTS</div>`;
 
-  if(cats.length === 0){
+  if(agg.size === 0){
     return `
       ${addItemRow}
       <div class="empty-state">
@@ -1093,15 +1118,19 @@ function renderSupply(){
   return `
     ${addItemRow}
     ${lede}
+    <div class="hint" style="margin-bottom:14px;">See something in the wrong section? Drag it into the right one — for recipe ingredients, this fixes the category on the recipe too, so it won't happen again next time.</div>
     <div class="shop-cats">
-      ${cats.map(cat => `
-        <div class="shop-cat">
+      ${CAT_ORDER.map(cat => `
+        <div class="shop-cat" data-cat-drop="${cat}">
           <h4>${cat}</h4>
-          ${byCat[cat].map(entry => {
+          ${(byCat[cat]||[]).length === 0 ? `<div class="shop-cat-empty">Drop items here</div>` : (byCat[cat]||[]).map(entry => {
             const key = entry.manual ? `extra-${entry.extraId}` : `${entry.name.toLowerCase()}|${entry.unit.toLowerCase()}`;
             const checked = state.shoppingChecked.has(key);
             return `
-              <div class="shop-row ${checked?'checked':''}">
+              <div class="shop-row ${checked?'checked':''}" draggable="true" data-shop-row
+                data-manual="${entry.manual}" data-extra-id="${entry.extraId||''}"
+                data-ing-name="${esc(entry.name)}" data-ing-cat="${esc(entry.cat)}">
+                <span class="drag-handle" title="Drag to recategorize">⠿</span>
                 <button class="shop-check ${checked?'on':''}" data-shop-toggle="${esc(key)}">${checked?'✓':''}</button>
                 <div class="shop-text">
                   <span class="shop-qty">${fmtQty(entry.qty)}${entry.unit?' '+esc(entry.unit):''}</span>${esc(entry.name)}
@@ -2058,6 +2087,19 @@ function hexDragImage(label){
   return canvas;
 }
 document.addEventListener("dragstart", (e) => {
+  const shopRow = e.target.closest("[data-shop-row]");
+  if(shopRow){
+    const payload = {
+      isManual: shopRow.dataset.manual === "true",
+      extraId: shopRow.dataset.extraId ? parseInt(shopRow.dataset.extraId,10) : null,
+      name: shopRow.dataset.ingName,
+      cat: shopRow.dataset.ingCat,
+    };
+    e.dataTransfer.setData("application/json", JSON.stringify(payload));
+    e.dataTransfer.effectAllowed = "move";
+    shopRow.classList.add("dragging-row");
+    return;
+  }
   const pegBtn = e.target.closest("[data-peg-cart]");
   if(!pegBtn || pegBtn.getAttribute("draggable") !== "true") return;
   const payload = {cartId: parseInt(pegBtn.dataset.pegCart,10), pegId: parseInt(pegBtn.dataset.pegId,10)};
@@ -2069,6 +2111,9 @@ document.addEventListener("dragstart", (e) => {
   pegBtn.classList.add("dragging");
 });
 document.addEventListener("dragend", (e) => {
+  const shopRow = e.target.closest("[data-shop-row]");
+  if(shopRow) shopRow.classList.remove("dragging-row");
+  document.querySelectorAll(".shop-cat.drag-over-cat").forEach(el => el.classList.remove("drag-over-cat"));
   const pegBtn = e.target.closest("[data-peg-cart]");
   if(pegBtn) pegBtn.classList.remove("dragging");
   document.querySelectorAll(".lg-cell.drag-over").forEach(el => el.classList.remove("drag-over"));
@@ -2076,18 +2121,38 @@ document.addEventListener("dragend", (e) => {
 document.addEventListener("dragenter", (e) => {
   const slot = e.target.closest(".lg-cell");
   if(slot && !slot.classList.contains("filled")) slot.classList.add("drag-over");
+  const catDrop = e.target.closest("[data-cat-drop]");
+  if(catDrop) catDrop.classList.add("drag-over-cat");
 });
 document.addEventListener("dragleave", (e) => {
   const slot = e.target.closest(".lg-cell");
   if(slot && !slot.contains(e.relatedTarget)) slot.classList.remove("drag-over");
+  const catDrop = e.target.closest("[data-cat-drop]");
+  if(catDrop && !catDrop.contains(e.relatedTarget)) catDrop.classList.remove("drag-over-cat");
 });
 document.addEventListener("dragover", (e) => {
+  const catDrop = e.target.closest("[data-cat-drop]");
+  if(catDrop){
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    return;
+  }
   if(e.target.closest(".loadgrid")){
     e.preventDefault();
     e.dataTransfer.dropEffect = "move";
   }
 });
 document.addEventListener("drop", (e) => {
+  const catDrop = e.target.closest("[data-cat-drop]");
+  if(catDrop){
+    e.preventDefault();
+    catDrop.classList.remove("drag-over-cat");
+    try{
+      const payload = JSON.parse(e.dataTransfer.getData("application/json"));
+      reassignIngredientCategory(payload, catDrop.dataset.catDrop);
+    }catch(err){}
+    return;
+  }
   const slotBtn = e.target.closest("[data-slot]");
   if(!slotBtn) return;
   e.preventDefault();
