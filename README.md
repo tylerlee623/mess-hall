@@ -2,7 +2,7 @@
 
 A customizable meal planning app — plan your week, track nutrition, and generate a consolidated grocery list, all in the browser.
 
-!\[Mess Hall weekly loadout grid](screenshot.png)
+!\[Mess Hall weekly loadout grid](loadout-builder-screenshot.png)
 
 ## The problem
 
