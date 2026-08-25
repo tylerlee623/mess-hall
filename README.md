@@ -25,7 +25,7 @@ Grocery shopping always felt harder than it should be — I'd stand in the store
 
 ## Live demo
 
-*\[Try it live](https://joyful-trifle-5f439a.netlify.app/)*
+*\[Try it live](https://mess-hall-tyler.netlify.app/)*
 
 ## What I'd do differently / what's next
 
