@@ -58,7 +58,8 @@
   .rail-item.active{background:var(--panel-2); border-left-color:var(--accent); color:var(--accent);}
   .rail-item.locked{color:var(--ink-faint);}
   .rail-item.locked .lock-tag{margin-left:auto; font-family:var(--mono); font-size:8.5px; background:var(--locked); color:var(--bg); padding:2px 5px; border-radius:3px; letter-spacing:0.05em;}
-  .rail-foot{margin-top:auto; padding:14px 18px 0; font-family:var(--mono); font-size:10px; color:var(--ink-faint); border-top:1px solid var(--line);}
+  .rail-foot{margin-top:12px; padding:14px 18px 0; font-family:var(--mono); font-size:10px; color:var(--ink-faint); border-top:1px solid var(--line);}
+  .rail-settings{margin-top:auto;}
 
   /* ---------------- MAIN ---------------- */
   .main{flex:1; min-width:0; display:flex; flex-direction:column;}
@@ -230,6 +231,23 @@
   }
   .info-btn:hover{border-color:var(--accent); color:var(--accent);}
 
+  .settings-card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:6px 20px; max-width:640px;}
+  .settings-row{display:flex; align-items:center; justify-content:space-between; gap:20px; padding:18px 0; border-top:1px solid var(--line-soft);}
+  .settings-row:first-child{border-top:none;}
+  .settings-row-label{font-family:var(--cond); font-weight:700; font-size:15px; text-transform:uppercase; letter-spacing:0.03em; color:var(--ink);}
+  .settings-row-desc{font-size:12.5px; color:var(--ink-dim); margin-top:3px; max-width:360px;}
+  .lang-toggle{display:flex; gap:6px; flex-shrink:0;}
+  .lang-option{background:var(--panel-2); border:1.5px solid var(--line); color:var(--ink-dim); padding:8px 14px; border-radius:4px; font-family:var(--cond); font-weight:700; font-size:13px;}
+  .lang-option.active{background:var(--accent); border-color:var(--accent); color:#1A1502;}
+  .lang-option:hover{border-color:var(--accent);}
+  .settings-more{font-family:var(--mono); font-size:11.5px; color:var(--ink-faint); margin-top:16px; max-width:640px;}
+  .settings-card-head{padding:16px 0 4px;}
+  .settings-card-head .settings-row-desc{margin-top:5px;}
+  .custom-string-field{display:flex; align-items:center; gap:8px; flex-shrink:0;}
+  .custom-string-input{width:220px; background:var(--panel-2); border:1.5px solid var(--line); border-radius:4px; color:var(--ink); font-family:var(--body); font-size:13.5px; padding:8px 10px;}
+  .custom-string-input:focus{border-color:var(--accent); outline:none;}
+  .btn-reset-string{background:none; border:1px solid var(--line); color:var(--ink-faint); width:30px; height:30px; border-radius:4px; font-size:14px; flex-shrink:0;}
+  .btn-reset-string:hover{border-color:var(--accent); color:var(--accent);}
   .locked-page{background:var(--panel); border:1px dashed var(--line); border-radius:var(--radius); padding:50px 30px; text-align:center; max-width:560px;}
   .locked-page .lock-icon{font-size:34px; margin-bottom:10px;}
   .locked-page h2{margin-bottom:8px;}
@@ -589,12 +607,201 @@ function findIngredientInfo(name, cat){
 const DEFAULT_CUISINES = ["American","Italian","Mexican","Asian","Mediterranean","Indian","Colombian","Fast Food"];
 
 const RAIL_ITEMS = [
-  {id:"armory", label:"Armory", locked:false, icon:`<path d="M4 7l8-4 8 4-8 4-8-4Z"/><path d="M4 7v10l8 4 8-4V7"/><path d="M12 11v10"/>`},
-  {id:"builder", label:"Loadout Builder", locked:false, icon:`<rect x="3" y="4" width="18" height="17" rx="1"/><path d="M3 10h18"/><path d="M8 15h3M13 15h3M8 18h3"/>`},
-  {id:"supply", label:"Supply List", locked:false, icon:`<path d="M6 2h9l3 3v17H6Z"/><path d="M9 8h6M9 12h6M9 16h4"/>`},
-  {id:"recon", label:"Recon (Community)", locked:true, icon:`<circle cx="12" cy="8" r="3.2"/><path d="M5 20c0-4 3-6.5 7-6.5S19 16 19 20"/>`},
-  {id:"receipts", label:"Receipts / Cost", locked:true, icon:`<rect x="4" y="3" width="16" height="18" rx="1"/><circle cx="12" cy="17" r="2.2"/><path d="M7 7h10M7 10h10"/>`},
+  {id:"armory", labelKey:"nav_armory", locked:false, icon:`<path d="M4 7l8-4 8 4-8 4-8-4Z"/><path d="M4 7v10l8 4 8-4V7"/><path d="M12 11v10"/>`},
+  {id:"builder", labelKey:"nav_builder", locked:false, icon:`<rect x="3" y="4" width="18" height="17" rx="1"/><path d="M3 10h18"/><path d="M8 15h3M13 15h3M8 18h3"/>`},
+  {id:"supply", labelKey:"nav_supply", locked:false, icon:`<path d="M6 2h9l3 3v17H6Z"/><path d="M9 8h6M9 12h6M9 16h4"/>`},
+  {id:"recon", labelKey:"nav_recon", locked:true, icon:`<circle cx="12" cy="8" r="3.2"/><path d="M5 20c0-4 3-6.5 7-6.5S19 16 19 20"/>`},
+  {id:"receipts", labelKey:"nav_receipts", locked:true, icon:`<rect x="4" y="3" width="16" height="18" rx="1"/><circle cx="12" cy="17" r="2.2"/><path d="M7 7h10M7 10h10"/>`},
 ];
+
+/* ============================================================
+   TRANSLATIONS
+   Keys are grouped by area of the app. Add new keys here (both
+   "en" and "es") when adding new user-facing strings, and use
+   t("key") wherever the string is rendered. Day/meal/category
+   names are internal data keys (used for matching/filtering) and
+   are translated for DISPLAY ONLY via dayLabel()/mealLabel()/
+   categoryLabel() — never rename the underlying keys themselves.
+============================================================ */
+const TRANSLATIONS = {
+  en: {
+    nav_armory:"Armory", nav_builder:"Loadout Builder", nav_supply:"Supply List",
+    nav_recon:"Recon (Community)", nav_receipts:"Receipts / Cost", nav_settings:"Settings",
+    nav_locked_soon:"SOON",
+    brand_tagline:"weekly loadout ops",
+    rail_recipes_one:"{n} RECIPE IN POOL", rail_recipes_other:"{n} RECIPES IN POOL",
+    rail_servings_one:"{n} SERVING TOTAL", rail_servings_other:"{n} SERVINGS TOTAL",
+
+    top_armory_title:"Armory", top_armory_desc:"Your recipe backlog — build it manually or paste a link to parse.",
+    top_builder_title:"Loadout Builder", top_builder_desc:"See your whole week at a glance, equip servings from the pool, then confirm to build your supply list.",
+    top_supply_title:"Supply List", top_supply_desc:"Ingredients from your confirmed loadout, plus anything you add yourself.",
+    top_recon_title:"Recon", top_recon_desc:"Community discover — coming after initial testing.",
+    top_receipts_title:"Receipts", top_receipts_desc:"Photo-scan cost estimation — coming after initial testing.",
+    top_settings_title:"Settings", top_settings_desc:"Customize how Mess Hall looks and behaves.",
+
+    day_Mon:"Mon", day_Tue:"Tue", day_Wed:"Wed", day_Thu:"Thu", day_Fri:"Fri", day_Sat:"Sat", day_Sun:"Sun",
+    meal_breakfast:"Breakfast", meal_lunch:"Lunch", meal_dinner:"Dinner", meal_snack:"Snack",
+    cat_produce:"Produce", cat_protein:"Protein", cat_dairy:"Dairy", cat_bakery:"Bakery", cat_pantry:"Pantry", cat_other:"Other",
+    tag_vegetarian:"vegetarian", tag_high_protein:"high-protein", tag_quick:"quick", tag_community:"community",
+
+    btn_add_to_loadout:"Add to loadout", btn_add_batch:"+ Add batch", btn_details:"Details",
+    btn_edit:"Edit", btn_delete_recipe:"Delete Recipe", btn_save_to_armory:"Save to Armory", btn_save_changes:"Save Changes",
+    btn_cancel:"Cancel", btn_close:"Close", btn_confirm_loadout:"Confirm Loadout", btn_reconfirm:"Re-confirm & rebuild list",
+    btn_add_to_list:"+ Add to list", btn_remove:"Remove", btn_remove_all:"Remove all", btn_remove_batch:"Remove batch",
+    btn_add_recipe:"+ Add Recipe", btn_add_category:"+ Custom cuisine",
+
+    filter_all:"All", filter_breakfast:"Breakfast", filter_lunch:"Lunch", filter_dinner:"Dinner",
+    filter_vegetarian:"Vegetarian", filter_highprotein:"High-protein", label_cuisine:"Cuisine",
+
+    stat_week_total:"Week Total", stat_daily_avg:"Daily Avg", stat_protein:"Protein", stat_carbs:"Carbs", stat_fat:"Fat",
+    stat_meals_planned:"Meals Planned", stat_protein_pct:"Protein % of Cal", stat_heaviest_day:"Heaviest Day",
+    stat_lightest_day:"Lightest Day", stat_days_full:"Days Fully Planned", stat_servings_equipped:"Servings Equipped",
+    stat_pool_recipes:"Recipes in Pool", stat_snacks_equipped:"Snacks Equipped",
+    label_calories:"Calories", label_fiber:"Fiber", label_daily_nutrition:"Daily Nutrition",
+    btn_parse_recipe:"Parse Recipe", btn_parsing:"Parsing…", btn_use_this:"Use This",
+    ph_recipe_title:"e.g. Weeknight Veggie Curry",
+    modal_new_cuisine_title:"New Cuisine Category", label_category_name:"Category name", btn_add_category_full:"Add category",
+    modal_delete_title:"Delete Recipe?", modal_delete_body:"Delete {title} from your Armory? This can't be undone.", btn_delete:"Delete",
+    info_store_section:"Store Section", info_common_brands:"Common Brands", info_also_called:"Also Called",
+    info_shelf_life:"Shelf Life", info_good_substitute:"Good Substitute", info_shoppers_tip:"Shopper's Tip",
+    info_no_entry:"No dex entry yet — showing general info for this category.",
+    dashboard_title:"Nutrition Dashboard", btn_customize:"Customize", btn_done:"Done",
+
+    pool_title:"Loadout Pool", pool_sub:"Pick up a supply unit, then tap a slot above to equip it.",
+    pool_empty:"Empty. Go to Armory and add a recipe first.",
+    confirm_ready_title:"Ready to lock this in?", confirm_done_title:"Loadout confirmed",
+    confirm_desc:"Confirming builds your consolidated Supply List from every equipped recipe this week — duplicate ingredients get merged automatically.",
+
+    supply_empty_title:"Your list is empty.",
+    supply_empty_desc:"Jot down a few items above — like something you'd normally scribble on paper before a store run — or confirm your weekly loadout in the Builder to pull in recipe ingredients automatically.",
+    supply_added_by_you:"Added by you",
+    supply_drag_hint:"See something in the wrong section? Drag it into the right one — for recipe ingredients, this fixes the category on the recipe too, so it won't happen again next time.",
+
+    modal_add_title:"Add Recipe to Armory", modal_edit_title:"Edit Recipe",
+    tab_paste_link:"Paste a link", tab_manual:"Enter manually",
+    label_title:"Recipe title", label_servings:"Servings it makes", label_time:"Prep time (minutes)", label_meals:"Meal type(s)",
+    label_nutrition:"Nutrition / serving", label_ingredients:"Ingredients", label_steps:"Steps", label_links:"Reference Links",
+
+    settings_language:"Language", settings_language_desc:"Choose the language Mess Hall displays in.",
+    settings_more_soon:"More settings will show up here as they're added.",
+    settings_custom_strings_title:"Custom Menu Names",
+    settings_custom_strings_desc:"Rename these menu items for the currently selected language. Switch languages above to customize each one separately.",
+    btn_reset:"Reset to default",
+    lbl_cal:"CAL", lbl_protein_short:"PROTEIN", lbl_carbs_short:"CARBS", lbl_fat_short:"FAT", lbl_fiber_short:"FIBER", lbl_total_cal:"TOTAL CAL",
+    lbl_min:"MIN", lbl_servings_short:"SERVINGS",
+    lang_en:"English", lang_es:"Español (Latinoamérica)",
+
+    toast_saved:"{title} saved to Armory", toast_updated:"{title} updated", toast_deleted:"{title} deleted",
+    toast_need_title:"Give your recipe a title before saving", toast_confirmed:"Loadout confirmed — supply list generated",
+    supply_lede_prefix:"CONSOLIDATED FROM", supply_lede_merged:"OVERLAPPING INGREDIENTS MERGED",
+    supply_lede_empty_pool:"YOUR LOADOUT POOL IS EMPTY", supply_lede_no_confirm:"NO WEEKLY LOADOUT CONFIRMED YET",
+    supply_lede_add_own:"ADD YOUR OWN ITEMS BELOW, OR HEAD TO THE BUILDER TO PULL IN RECIPE INGREDIENTS",
+    recipe_count_one:"{n} RECIPE", recipe_count_other:"{n} RECIPES",
+    serving_count_one:"{n} SERVING", serving_count_other:"{n} SERVINGS",
+    ph_item_name:"Item name (e.g. Paper towels)", ph_qty:"Qty", ph_unit:"Unit (optional)",
+    supply_drop_here:"Drop items here",
+  },
+  es: {
+    nav_armory:"Arsenal", nav_builder:"Planificador Semanal", nav_supply:"Lista de Compras",
+    nav_recon:"Recon (Comunidad)", nav_receipts:"Recibos / Costo", nav_settings:"Configuración",
+    nav_locked_soon:"PRONTO",
+    brand_tagline:"operaciones semanales",
+    rail_recipes_one:"{n} RECETA EN EL GRUPO", rail_recipes_other:"{n} RECETAS EN EL GRUPO",
+    rail_servings_one:"{n} PORCIÓN EN TOTAL", rail_servings_other:"{n} PORCIONES EN TOTAL",
+
+    top_armory_title:"Arsenal", top_armory_desc:"Tu banco de recetas — agrégalas manualmente o pega un enlace para procesarlo.",
+    top_builder_title:"Planificador Semanal", top_builder_desc:"Mira toda tu semana de un vistazo, asigna porciones desde el grupo, y confirma para generar tu lista de compras.",
+    top_supply_title:"Lista de Compras", top_supply_desc:"Ingredientes de tu semana confirmada, más cualquier cosa que agregues tú mismo.",
+    top_recon_title:"Recon", top_recon_desc:"Descubre recetas de la comunidad — disponible después de las pruebas iniciales.",
+    top_receipts_title:"Recibos", top_receipts_desc:"Estimación de costos con foto de recibo — disponible después de las pruebas iniciales.",
+    top_settings_title:"Configuración", top_settings_desc:"Personaliza cómo se ve y funciona Mess Hall.",
+
+    day_Mon:"Lun", day_Tue:"Mar", day_Wed:"Mié", day_Thu:"Jue", day_Fri:"Vie", day_Sat:"Sáb", day_Sun:"Dom",
+    meal_breakfast:"Desayuno", meal_lunch:"Almuerzo", meal_dinner:"Cena", meal_snack:"Merienda",
+    cat_produce:"Frutas y Verduras", cat_protein:"Proteína", cat_dairy:"Lácteos", cat_bakery:"Panadería", cat_pantry:"Despensa", cat_other:"Otro",
+    tag_vegetarian:"vegetariano", tag_high_protein:"alto en proteína", tag_quick:"rápido", tag_community:"comunidad",
+
+    btn_add_to_loadout:"Agregar al menú", btn_add_batch:"+ Agregar tanda", btn_details:"Detalles",
+    btn_edit:"Editar", btn_delete_recipe:"Eliminar Receta", btn_save_to_armory:"Guardar en el Arsenal", btn_save_changes:"Guardar Cambios",
+    btn_cancel:"Cancelar", btn_close:"Cerrar", btn_confirm_loadout:"Confirmar Semana", btn_reconfirm:"Reconfirmar y actualizar lista",
+    btn_add_to_list:"+ Agregar a la lista", btn_remove:"Eliminar", btn_remove_all:"Eliminar todo", btn_remove_batch:"Eliminar tanda",
+    btn_add_recipe:"+ Agregar Receta", btn_add_category:"+ Cocina personalizada",
+
+    filter_all:"Todo", filter_breakfast:"Desayuno", filter_lunch:"Almuerzo", filter_dinner:"Cena",
+    filter_vegetarian:"Vegetariano", filter_highprotein:"Alto en proteína", label_cuisine:"Cocina",
+
+    stat_week_total:"Total Semanal", stat_daily_avg:"Promedio Diario", stat_protein:"Proteína", stat_carbs:"Carbohidratos", stat_fat:"Grasa",
+    stat_meals_planned:"Comidas Planeadas", stat_protein_pct:"% Proteína de Cal", stat_heaviest_day:"Día Más Alto",
+    stat_lightest_day:"Día Más Bajo", stat_days_full:"Días Completos", stat_servings_equipped:"Porciones Asignadas",
+    stat_pool_recipes:"Recetas en el Grupo", stat_snacks_equipped:"Meriendas Asignadas",
+    label_calories:"Calorías", label_fiber:"Fibra", label_daily_nutrition:"Nutrición Diaria",
+    btn_parse_recipe:"Procesar Receta", btn_parsing:"Procesando…", btn_use_this:"Usar Esto",
+    ph_recipe_title:"ej. Curry de Vegetales",
+    modal_new_cuisine_title:"Nueva Categoría de Cocina", label_category_name:"Nombre de la categoría", btn_add_category_full:"Agregar categoría",
+    modal_delete_title:"¿Eliminar Receta?", modal_delete_body:"¿Eliminar {title} de tu Arsenal? Esto no se puede deshacer.", btn_delete:"Eliminar",
+    info_store_section:"Sección de la Tienda", info_common_brands:"Marcas Comunes", info_also_called:"También Llamado",
+    info_shelf_life:"Vida Útil", info_good_substitute:"Buen Sustituto", info_shoppers_tip:"Consejo de Compra",
+    info_no_entry:"Sin ficha todavía — mostrando información general para esta categoría.",
+    dashboard_title:"Panel de Nutrición", btn_customize:"Personalizar", btn_done:"Listo",
+
+    pool_title:"Grupo de Recetas", pool_sub:"Toma una unidad y luego toca una casilla arriba para asignarla.",
+    pool_empty:"Vacío. Ve al Arsenal y agrega una receta primero.",
+    confirm_ready_title:"¿Listo para confirmar?", confirm_done_title:"Semana confirmada",
+    confirm_desc:"Al confirmar se genera tu Lista de Compras a partir de cada receta asignada esta semana — los ingredientes duplicados se combinan automáticamente.",
+
+    supply_empty_title:"Tu lista está vacía.",
+    supply_empty_desc:"Anota algunos artículos arriba — como algo que normalmente escribirías en papel antes de ir a la tienda — o confirma tu semana en el Planificador para traer los ingredientes automáticamente.",
+    supply_added_by_you:"Agregado por ti",
+    supply_drag_hint:"¿Ves algo en la sección equivocada? Arrástralo a la correcta — para ingredientes de recetas, esto también corrige la categoría en la receta, para que no vuelva a pasar.",
+
+    modal_add_title:"Agregar Receta al Arsenal", modal_edit_title:"Editar Receta",
+    tab_paste_link:"Pegar un enlace", tab_manual:"Ingresar manualmente",
+    label_title:"Título de la receta", label_servings:"Porciones que rinde", label_time:"Tiempo de preparación (minutos)", label_meals:"Tipo(s) de comida",
+    label_nutrition:"Nutrición / porción", label_ingredients:"Ingredientes", label_steps:"Pasos", label_links:"Enlaces de Referencia",
+
+    settings_language:"Idioma", settings_language_desc:"Elige el idioma en el que se muestra Mess Hall.",
+    settings_more_soon:"Más opciones de configuración aparecerán aquí a medida que se agreguen.",
+    settings_custom_strings_title:"Nombres de Menú Personalizados",
+    settings_custom_strings_desc:"Cambia el nombre de estos elementos de menú para el idioma seleccionado. Cambia el idioma arriba para personalizar los nombres de cada uno por separado.",
+    btn_reset:"Restablecer",
+    lbl_cal:"CAL", lbl_protein_short:"PROTEÍNA", lbl_carbs_short:"CARBS", lbl_fat_short:"GRASA", lbl_fiber_short:"FIBRA", lbl_total_cal:"CAL TOTAL",
+    lbl_min:"MIN", lbl_servings_short:"PORCIONES",
+    lang_en:"English", lang_es:"Español (Latinoamérica)",
+
+    toast_saved:"{title} guardado en el Arsenal", toast_updated:"{title} actualizado", toast_deleted:"{title} eliminado",
+    toast_need_title:"Ponle un título a tu receta antes de guardar", toast_confirmed:"Semana confirmada — lista de compras generada",
+    supply_lede_prefix:"CONSOLIDADO DE", supply_lede_merged:"INGREDIENTES DUPLICADOS COMBINADOS",
+    supply_lede_empty_pool:"TU GRUPO DE RECETAS ESTÁ VACÍO", supply_lede_no_confirm:"AÚN NO HAS CONFIRMADO TU SEMANA",
+    supply_lede_add_own:"AGREGA TUS PROPIOS ARTÍCULOS ABAJO, O VE AL PLANIFICADOR PARA TRAER INGREDIENTES DE RECETAS",
+    recipe_count_one:"{n} RECETA", recipe_count_other:"{n} RECETAS",
+    serving_count_one:"{n} PORCIÓN", serving_count_other:"{n} PORCIONES",
+    ph_item_name:"Nombre del artículo (ej. Papel toalla)", ph_qty:"Cant.", ph_unit:"Unidad (opcional)",
+    supply_drop_here:"Suelta artículos aquí",
+  },
+};
+const CUSTOMIZABLE_KEYS = ["nav_armory","nav_builder","nav_supply","nav_recon","nav_receipts"];
+function t(key){
+  const custom = (state.customStrings[state.language] || {})[key];
+  if(custom) return custom;
+  const dict = TRANSLATIONS[state.language] || TRANSLATIONS.en;
+  return dict[key] !== undefined ? dict[key] : (TRANSLATIONS.en[key] !== undefined ? TRANSLATIONS.en[key] : key);
+}
+function tf(key, vars){
+  let str = t(key);
+  Object.keys(vars||{}).forEach(k => { str = str.split(`{${k}}`).join(vars[k]); });
+  return str;
+}
+function tc(n, baseKey){
+  return tf(baseKey + (Math.abs(n)===1 ? "_one" : "_other"), {n});
+}
+function dayLabel(day){ return t("day_"+day); }
+function mealLabel(meal){ return t("meal_"+String(meal).toLowerCase()); }
+function categoryLabel(cat){ return t("cat_"+String(cat).toLowerCase()); }
+function tagLabel(tag){
+  const key = "tag_"+String(tag).toLowerCase().replace(/-/g,"_");
+  const dict = TRANSLATIONS[state.language] || TRANSLATIONS.en;
+  return dict[key] !== undefined ? dict[key] : tag;
+}
 
 /* ============================================================
    STATE
@@ -616,6 +823,8 @@ const state = {
   snackEnabled: new Set(),     // days with a snack slot
   shoppingChecked: new Set(),
   confirmedOnce: false,
+  language: "en",
+  customStrings: {en:{}, es:{}},   // per-language user overrides for CUSTOMIZABLE_KEYS
   ingredientPopover: null,
   extraItems: [],   // {id, name, qty, unit, cat} - manually added, not tied to any recipe
   modal: null,
@@ -770,27 +979,32 @@ function renderRail(){
   document.getElementById("rail").innerHTML = `
     <div class="rail-brand">
       <div class="word">MESS HALL</div>
-      <div class="sub">weekly loadout ops</div>
+      <div class="sub">${t("brand_tagline")}</div>
     </div>
     ${RAIL_ITEMS.map(item => `
       <button class="rail-item ${state.section===item.id?'active':''} ${item.locked?'locked':''}" data-section="${item.id}">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${item.icon}</svg>
-        <span>${item.label}</span>
-        ${item.locked ? `<span class="lock-tag">SOON</span>` : ""}
+        <span>${t(item.labelKey)}</span>
+        ${item.locked ? `<span class="lock-tag">${t("nav_locked_soon")}</span>` : ""}
       </button>
     `).join("")}
-    <div class="rail-foot">${state.cart.length} RECIPE${state.cart.length!==1?'S':''} IN POOL<br>${totalCartServings()} SERVINGS TOTAL</div>
+    <button class="rail-item rail-settings ${state.section==='settings'?'active':''}" data-section="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 13a7.97 7.97 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a8 8 0 0 0-1.7-1L15 3h-4l-.3 2.9a8 8 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.97 7.97 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a8 8 0 0 0 1.7 1L11 21h4l.3-2.9a8 8 0 0 0 1.7-1l2.5 1 2-3.5Z"/></svg>
+      <span>${t("nav_settings")}</span>
+    </button>
+    <div class="rail-foot">${tc(state.cart.length, "rail_recipes")}<br>${tc(totalCartServings(), "rail_servings")}</div>
   `;
 }
 function renderTopbar(){
   const titles = {
-    armory:["Armory","Your recipe backlog — build it manually or paste a link to parse."],
-    builder:["Loadout Builder","See your whole week at a glance, equip servings from the pool, then confirm to build your supply list."],
-    supply:["Supply List","Ingredients from your confirmed loadout, plus anything you add yourself."],
-    recon:["Recon","Community discover — coming after initial testing."],
-    receipts:["Receipts","Photo-scan cost estimation — coming after initial testing."],
+    armory:[t("top_armory_title"), t("top_armory_desc")],
+    builder:[t("top_builder_title"), t("top_builder_desc")],
+    supply:[t("top_supply_title"), t("top_supply_desc")],
+    recon:[t("top_recon_title"), t("top_recon_desc")],
+    receipts:[t("top_receipts_title"), t("top_receipts_desc")],
+    settings:[t("top_settings_title"), t("top_settings_desc")],
   };
-  const [h,p] = titles[state.section];
+  const [h,p] = titles[state.section] || titles.armory;
   document.getElementById("topbar").innerHTML = `<div><h1>${h}</h1><p>${p}</p></div>`;
 }
 
@@ -799,8 +1013,8 @@ function renderTopbar(){
 ============================================================ */
 function renderArmory(){
   const filters = [
-    {id:"all", label:"All"},{id:"breakfast", label:"Breakfast"},{id:"lunch", label:"Lunch"},
-    {id:"dinner", label:"Dinner"},{id:"vegetarian", label:"Vegetarian"},{id:"high-protein", label:"High-protein"},
+    {id:"all", label:t("filter_all")},{id:"breakfast", label:t("filter_breakfast")},{id:"lunch", label:t("filter_lunch")},
+    {id:"dinner", label:t("filter_dinner")},{id:"vegetarian", label:t("filter_vegetarian")},{id:"high-protein", label:t("filter_highprotein")},
   ];
   const cuisines = ["all", ...allCuisines()];
   const list = state.recipes.filter(r => {
@@ -810,16 +1024,16 @@ function renderArmory(){
   });
   return `
     <div style="display:flex; justify-content:flex-end; margin-bottom:16px;">
-      <button class="btn btn-accent" data-open-add>+ Add Recipe</button>
+      <button class="btn btn-accent" data-open-add>${t("btn_add_recipe")}</button>
     </div>
     <div class="chiprow">
       <span class="chiprow-label">Type</span>
       ${filters.map(f=>`<button class="chip ${state.filter===f.id?'active':''}" data-filter="${f.id}">${f.label}</button>`).join("")}
     </div>
     <div class="chiprow">
-      <span class="chiprow-label">Cuisine</span>
-      ${cuisines.map(c=>`<button class="chip ${state.cuisineFilter===c?'active':''}" data-cuisine-filter="${esc(c)}">${c==="all"?"All":esc(c)}</button>`).join("")}
-      <button class="chip chip-add" data-open-cuisine>+ Custom cuisine</button>
+      <span class="chiprow-label">${t("label_cuisine")}</span>
+      ${cuisines.map(c=>`<button class="chip ${state.cuisineFilter===c?'active':''}" data-cuisine-filter="${esc(c)}">${c==="all"?t("filter_all"):esc(c)}</button>`).join("")}
+      <button class="chip chip-add" data-open-cuisine>${t("btn_add_category")}</button>
     </div>
     <div class="recipe-grid">
       ${list.length ? list.map(recipeCard).join("") : `<div class="empty-state" style="grid-column:1/-1;">No recipes match these filters yet.</div>`}
@@ -848,10 +1062,10 @@ function recipeCard(r){
           <div class="macro-legend"><span><i style="background:var(--teal)"></i>P ${r.protein}g</span><span><i style="background:var(--brick)"></i>C ${r.carbs}g</span><span><i style="background:var(--violet)"></i>F ${r.fat}g</span></div>
         </div>
       </button>
-      <div class="tag-row">${r.cuisine ? `<span class="tag cuisine-tag">${esc(r.cuisine)}</span>` : ""}${r.meals.map(m=>`<span class="tag">${m}</span>`).join("")}${r.tags.map(t=>`<span class="tag">${t}</span>`).join("")}</div>
+      <div class="tag-row">${r.cuisine ? `<span class="tag cuisine-tag">${esc(r.cuisine)}</span>` : ""}${r.meals.map(m=>`<span class="tag">${mealLabel(m)}</span>`).join("")}${r.tags.map(tag=>`<span class="tag">${tagLabel(tag)}</span>`).join("")}</div>
       <div class="rcard-actions">
-        <button class="btn btn-accent btn-sm" data-add-cart="${r.id}">${inLoadout ? "+ Add batch" : "Add to loadout"}</button>
-        <button class="btn btn-ghost btn-sm" data-open-detail="${r.id}">Details</button>
+        <button class="btn btn-accent btn-sm" data-add-cart="${r.id}">${inLoadout ? t("btn_add_batch") : t("btn_add_to_loadout")}</button>
+        <button class="btn btn-ghost btn-sm" data-open-detail="${r.id}">${t("btn_details")}</button>
       </div>
       ${inLoadout ? `<div class="in-loadout-note">✓ IN POOL — ${inLoadout.pegs.length} SERVING${inLoadout.pegs.length!==1?'S':''} TO EQUIP</div>` : ""}
     </div>
@@ -871,35 +1085,35 @@ function renderBuilder(){
     ${loadGrid()}
 
     <div class="pool-panel-wide">
-      <h3>Loadout Pool</h3>
-      <div class="pool-sub">Pick up a supply unit, then tap a slot above to equip it.</div>
-      ${state.cart.length===0 ? `<div class="pool-empty">Empty. Go to Armory and add a recipe first.</div>` : `<div class="pool-items-grid">${state.cart.map(poolItemRow).join("")}</div>`}
+      <h3>${t("pool_title")}</h3>
+      <div class="pool-sub">${t("pool_sub")}</div>
+      ${state.cart.length===0 ? `<div class="pool-empty">${t("pool_empty")}</div>` : `<div class="pool-items-grid">${state.cart.map(poolItemRow).join("")}</div>`}
     </div>
 
     <div class="confirm-box">
       <div>
-        <h3>${state.confirmedOnce ? "Loadout confirmed" : "Ready to lock this in?"}</h3>
-        <p>Confirming builds your consolidated Supply List from every equipped recipe this week — duplicate ingredients get merged automatically.</p>
+        <h3>${state.confirmedOnce ? t("confirm_done_title") : t("confirm_ready_title")}</h3>
+        <p>${t("confirm_desc")}</p>
       </div>
-      <button class="btn btn-accent" data-confirm-loadout>${state.confirmedOnce ? "Re-confirm & rebuild list" : "Confirm Loadout"}</button>
+      <button class="btn btn-accent" data-confirm-loadout>${state.confirmedOnce ? t("btn_reconfirm") : t("btn_confirm_loadout")}</button>
     </div>
   `;
 }
 
 const STAT_DEFS = [
-  {id:"week", label:"Week Total", value: ctx=>`${ctx.week.cal}<small> cal</small>`},
-  {id:"avg", label:"Daily Avg", value: ctx=>`${Math.round(ctx.week.cal/7)}<small> cal</small>`},
-  {id:"protein", label:"Protein", value: ctx=>`${ctx.week.protein}<small> g</small>`},
-  {id:"carbs", label:"Carbs", value: ctx=>`${ctx.week.carbs}<small> g</small>`},
-  {id:"fat", label:"Fat", value: ctx=>`${ctx.week.fat}<small> g</small>`},
-  {id:"planned", label:"Meals Planned", value: ctx=>`${ctx.filledMeals}<small> / ${ctx.totalSlots}</small>`},
-  {id:"proteinPct", label:"Protein % of Cal", value: ctx=>`${ctx.proteinPct}<small> %</small>`},
-  {id:"peak", label:"Heaviest Day", value: ctx=> ctx.peak ? `${ctx.peak.day}<small> ${ctx.peak.cal} cal</small>` : `—<small> no meals yet</small>`},
-  {id:"light", label:"Lightest Day", value: ctx=> ctx.light ? `${ctx.light.day}<small> ${ctx.light.cal} cal</small>` : `—<small> no meals yet</small>`},
-  {id:"daysFull", label:"Days Fully Planned", value: ctx=>`${ctx.daysFullyPlanned}<small> / 7</small>`},
-  {id:"servings", label:"Servings Equipped", value: ctx=>`${ctx.servingsEquipped}<small> / ${ctx.servingsTotal}</small>`},
-  {id:"poolRecipes", label:"Recipes in Pool", value: ctx=>`${ctx.poolRecipes}`},
-  {id:"snacks", label:"Snacks Equipped", value: ctx=>`${ctx.snacksEquipped}<small> / 7</small>`},
+  {id:"week", labelKey:"stat_week_total", value: ctx=>`${ctx.week.cal}<small> cal</small>`},
+  {id:"avg", labelKey:"stat_daily_avg", value: ctx=>`${Math.round(ctx.week.cal/7)}<small> cal</small>`},
+  {id:"protein", labelKey:"stat_protein", value: ctx=>`${ctx.week.protein}<small> g</small>`},
+  {id:"carbs", labelKey:"stat_carbs", value: ctx=>`${ctx.week.carbs}<small> g</small>`},
+  {id:"fat", labelKey:"stat_fat", value: ctx=>`${ctx.week.fat}<small> g</small>`},
+  {id:"planned", labelKey:"stat_meals_planned", value: ctx=>`${ctx.filledMeals}<small> / ${ctx.totalSlots}</small>`},
+  {id:"proteinPct", labelKey:"stat_protein_pct", value: ctx=>`${ctx.proteinPct}<small> %</small>`},
+  {id:"peak", labelKey:"stat_heaviest_day", value: ctx=> ctx.peak ? `${dayLabel(ctx.peak.day)}<small> ${ctx.peak.cal} cal</small>` : `—<small> no meals yet</small>`},
+  {id:"light", labelKey:"stat_lightest_day", value: ctx=> ctx.light ? `${dayLabel(ctx.light.day)}<small> ${ctx.light.cal} cal</small>` : `—<small> no meals yet</small>`},
+  {id:"daysFull", labelKey:"stat_days_full", value: ctx=>`${ctx.daysFullyPlanned}<small> / 7</small>`},
+  {id:"servings", labelKey:"stat_servings_equipped", value: ctx=>`${ctx.servingsEquipped}<small> / ${ctx.servingsTotal}</small>`},
+  {id:"poolRecipes", labelKey:"stat_pool_recipes", value: ctx=>`${ctx.poolRecipes}`},
+  {id:"snacks", labelKey:"stat_snacks_equipped", value: ctx=>`${ctx.snacksEquipped}<small> / 7</small>`},
 ];
 
 function buildStatsContext(){
@@ -931,14 +1145,14 @@ function renderStatTiles(ctx){
   const hidden = STAT_DEFS.filter(s => !state.visibleStats.has(s.id));
   return `
     <div class="stats-header">
-      <div class="section-label" style="margin:0;">Nutrition Dashboard</div>
-      <button class="btn btn-ghost btn-sm" data-toggle-stats-edit>${state.statsEditMode ? "Done" : "Customize"}</button>
+      <div class="section-label" style="margin:0;">${t("dashboard_title")}</div>
+      <button class="btn btn-ghost btn-sm" data-toggle-stats-edit>${state.statsEditMode ? t("btn_done") : t("btn_customize")}</button>
     </div>
     <div class="stat-tiles">
       ${visible.length ? visible.map(s => `
         <div class="stat-tile ${state.statsEditMode ? 'edit' : ''}">
           ${state.statsEditMode ? `<button class="stat-remove" data-remove-stat="${s.id}" title="Remove tile">✕</button>` : ""}
-          <div class="label">${s.label}</div>
+          <div class="label">${t(s.labelKey)}</div>
           <div class="value">${s.value(ctx)}</div>
         </div>
       `).join("") : `<div class="stat-empty">All tiles hidden — add one back below.</div>`}
@@ -946,7 +1160,7 @@ function renderStatTiles(ctx){
     ${state.statsEditMode && hidden.length ? `
       <div class="stats-add-row">
         <span class="chiprow-label">Add tile</span>
-        ${hidden.map(s => `<button class="chip chip-add" data-add-stat="${s.id}">+ ${s.label}</button>`).join("")}
+        ${hidden.map(s => `<button class="chip chip-add" data-add-stat="${s.id}">+ ${t(s.labelKey)}</button>`).join("")}
       </div>
     ` : ""}
   `;
@@ -1001,29 +1215,29 @@ function cellMarkup(day, meal){
       </button>`;
   }
   return `
-    <button class="lg-cell" data-slot="${slotId}" title="Empty ${meal.toLowerCase()} slot — tap to pick a recipe, or drag a peg here">
+    <button class="lg-cell" data-slot="${slotId}" title="Empty ${mealLabel(meal).toLowerCase()} slot — tap to pick a recipe, or drag a peg here">
       <span class="ghost">${MEAL_ICON[meal]}</span>
     </button>`;
 }
 function snackCell(day){
   if(!state.snackEnabled.has(day)){
-    return `<button class="lg-add-snack" data-toggle-snack="${day}" title="Add a snack slot for ${day}">+</button>`;
+    return `<button class="lg-add-snack" data-toggle-snack="${day}" title="Add a snack slot for ${dayLabel(day)}">+</button>`;
   }
-  return `<div class="lg-cell-wrap">${cellMarkup(day,'Snack')}<button class="lg-remove-snack" data-toggle-snack="${day}" title="Remove snack slot for ${day}">✕</button></div>`;
+  return `<div class="lg-cell-wrap">${cellMarkup(day,'Snack')}<button class="lg-remove-snack" data-toggle-snack="${day}" title="Remove snack slot for ${dayLabel(day)}">✕</button></div>`;
 }
 const DAY_NUTRIENT_DEFS = [
-  {id:"cal", label:"Calories", unit:"cal", color:"--accent", get:n=>n.cal},
-  {id:"protein", label:"Protein", unit:"g", color:"--teal", get:n=>n.protein},
-  {id:"carbs", label:"Carbs", unit:"g", color:"--brick", get:n=>n.carbs},
-  {id:"fat", label:"Fat", unit:"g", color:"--violet", get:n=>n.fat},
-  {id:"fiber", label:"Fiber", unit:"g", color:"--fiber", get:n=>n.fiber},
+  {id:"cal", labelKey:"label_calories", unit:"cal", color:"--accent", get:n=>n.cal},
+  {id:"protein", labelKey:"stat_protein", unit:"g", color:"--teal", get:n=>n.protein},
+  {id:"carbs", labelKey:"stat_carbs", unit:"g", color:"--brick", get:n=>n.carbs},
+  {id:"fat", labelKey:"stat_fat", unit:"g", color:"--violet", get:n=>n.fat},
+  {id:"fiber", labelKey:"label_fiber", unit:"g", color:"--fiber", get:n=>n.fiber},
 ];
 
 function loadGrid(){
   const rows = ["Breakfast","Lunch","Dinner","Snack"];
   let mealCells = "";
   rows.forEach(meal => {
-    mealCells += `<div class="lg-meallabel">${MEAL_ICON[meal]} ${meal}</div>`;
+    mealCells += `<div class="lg-meallabel">${MEAL_ICON[meal]} ${mealLabel(meal)}</div>`;
     DAYS.forEach(day => { mealCells += meal === "Snack" ? snackCell(day) : cellMarkup(day, meal); });
   });
 
@@ -1033,7 +1247,7 @@ function loadGrid(){
 
   let nutrientCells = "";
   visible.forEach(def => {
-    nutrientCells += `<div class="lg-meallabel lg-nut-label" style="color:var(${def.color})">${def.label}</div>`;
+    nutrientCells += `<div class="lg-meallabel lg-nut-label" style="color:var(${def.color})">${t(def.labelKey)}</div>`;
     daily.forEach(n => {
       nutrientCells += `<div class="lg-nut-cell" style="color:var(${def.color})">${Math.round(def.get(n)) || 0}<span class="u">${def.unit}</span></div>`;
     });
@@ -1043,16 +1257,16 @@ function loadGrid(){
     <div class="loadgrid-wrap">
       <div class="loadgrid">
         <div></div>
-        ${DAYS.map(d=>`<div class="lg-daylabel">${d}</div>`).join("")}
+        ${DAYS.map(d=>`<div class="lg-daylabel">${dayLabel(d)}</div>`).join("")}
         ${mealCells}
         <div class="lg-divider">
-          <span class="lg-divider-label">Daily Nutrition</span>
-          <button class="btn btn-ghost btn-sm" data-toggle-daynutrients-edit>${state.dayNutrientsEditMode ? "Done" : "Customize"}</button>
+          <span class="lg-divider-label">${t("label_daily_nutrition")}</span>
+          <button class="btn btn-ghost btn-sm" data-toggle-daynutrients-edit>${state.dayNutrientsEditMode ? t("btn_done") : t("btn_customize")}</button>
         </div>
         ${state.dayNutrientsEditMode ? `
           <div class="lg-nut-chiprow">
-            ${visible.map(n => `<button class="chip nut-chip" style="border-color:var(${n.color}); color:var(${n.color})" data-remove-daynut="${n.id}">${n.label} ✕</button>`).join("")}
-            ${hidden.map(n => `<button class="chip chip-add" data-add-daynut="${n.id}">+ ${n.label}</button>`).join("")}
+            ${visible.map(n => `<button class="chip nut-chip" style="border-color:var(${n.color}); color:var(${n.color})" data-remove-daynut="${n.id}">${t(n.labelKey)} ✕</button>`).join("")}
+            ${hidden.map(n => `<button class="chip chip-add" data-add-daynut="${n.id}">+ ${t(n.labelKey)}</button>`).join("")}
           </div>
         ` : ""}
         ${visible.length ? nutrientCells : `<div class="lg-nut-empty">No nutrition rows selected — tap Customize to add one.</div>`}
@@ -1091,26 +1305,26 @@ function renderSupply(){
 
   const addItemRow = `
     <div class="add-item-row">
-      <input type="text" id="extra-item-name" placeholder="Item name (e.g. Paper towels)">
-      <input type="text" id="extra-item-qty" placeholder="Qty" value="1">
-      <input type="text" id="extra-item-unit" placeholder="Unit (optional)">
+      <input type="text" id="extra-item-name" placeholder="${t("ph_item_name")}">
+      <input type="text" id="extra-item-qty" placeholder="${t("ph_qty")}" value="1">
+      <input type="text" id="extra-item-unit" placeholder="${t("ph_unit")}">
       <select id="extra-item-cat">
-        ${CAT_ORDER.map(c => `<option value="${c}" ${c==='Other'?'selected':''}>${c}</option>`).join("")}
+        ${CAT_ORDER.map(c => `<option value="${c}" ${c==='Other'?'selected':''}>${categoryLabel(c)}</option>`).join("")}
       </select>
-      <button class="btn btn-accent btn-sm" data-add-extra-item>+ Add to list</button>
+      <button class="btn btn-accent btn-sm" data-add-extra-item>${t("btn_add_to_list")}</button>
     </div>
   `;
 
   const lede = hasRecipeList
-    ? `<div class="supply-lede">CONSOLIDATED FROM ${state.cart.length} RECIPE${state.cart.length!==1?'S':''} · ${totalCartServings()} SERVINGS · OVERLAPPING INGREDIENTS MERGED</div>`
-    : `<div class="supply-lede">${state.confirmedOnce ? "YOUR LOADOUT POOL IS EMPTY" : "NO WEEKLY LOADOUT CONFIRMED YET"} — ADD YOUR OWN ITEMS BELOW, OR HEAD TO THE BUILDER TO PULL IN RECIPE INGREDIENTS</div>`;
+    ? `<div class="supply-lede">${t("supply_lede_prefix")} ${tc(state.cart.length,"recipe_count")} · ${tc(totalCartServings(),"serving_count")} · ${t("supply_lede_merged")}</div>`
+    : `<div class="supply-lede">${state.confirmedOnce ? t("supply_lede_empty_pool") : t("supply_lede_no_confirm")} — ${t("supply_lede_add_own")}</div>`;
 
   if(agg.size === 0){
     return `
       ${addItemRow}
       <div class="empty-state">
-        <p><strong>Your list is empty.</strong></p>
-        <p>Jot down a few items above — like something you'd normally scribble on paper before a store run — or confirm your weekly loadout in the Builder to pull in recipe ingredients automatically.</p>
+        <p><strong>${t("supply_empty_title")}</strong></p>
+        <p>${t("supply_empty_desc")}</p>
       </div>
     `;
   }
@@ -1118,12 +1332,12 @@ function renderSupply(){
   return `
     ${addItemRow}
     ${lede}
-    <div class="hint" style="margin-bottom:14px;">See something in the wrong section? Drag it into the right one — for recipe ingredients, this fixes the category on the recipe too, so it won't happen again next time.</div>
+    <div class="hint" style="margin-bottom:14px;">${t("supply_drag_hint")}</div>
     <div class="shop-cats">
       ${CAT_ORDER.map(cat => `
         <div class="shop-cat" data-cat-drop="${cat}">
-          <h4>${cat}</h4>
-          ${(byCat[cat]||[]).length === 0 ? `<div class="shop-cat-empty">Drop items here</div>` : (byCat[cat]||[]).map(entry => {
+          <h4>${categoryLabel(cat)}</h4>
+          ${(byCat[cat]||[]).length === 0 ? `<div class="shop-cat-empty">${t("supply_drop_here")}</div>` : (byCat[cat]||[]).map(entry => {
             const key = entry.manual ? `extra-${entry.extraId}` : `${entry.name.toLowerCase()}|${entry.unit.toLowerCase()}`;
             const checked = state.shoppingChecked.has(key);
             return `
@@ -1134,7 +1348,7 @@ function renderSupply(){
                 <button class="shop-check ${checked?'on':''}" data-shop-toggle="${esc(key)}">${checked?'✓':''}</button>
                 <div class="shop-text">
                   <span class="shop-qty">${fmtQty(entry.qty)}${entry.unit?' '+esc(entry.unit):''}</span>${esc(entry.name)}
-                  <span class="shop-src">${entry.manual ? "Added by you" : [...entry.sources].join(", ")}</span>
+                  <span class="shop-src">${entry.manual ? t("supply_added_by_you") : [...entry.sources].join(", ")}</span>
                 </div>
                 <button class="info-btn" data-ingredient-info="${esc(entry.name)}" data-ingredient-cat="${esc(entry.cat)}" title="What is this?">
                   <svg viewBox="0 0 12 12" width="10" height="10" fill="currentColor"><circle cx="6" cy="3.2" r="1.15"/><rect x="5.1" y="5.3" width="1.8" height="5" rx="0.5"/></svg>
@@ -1152,6 +1366,46 @@ function renderSupply(){
 /* ============================================================
    RENDER: LOCKED PAGES
 ============================================================ */
+/* ============================================================
+   RENDER: SETTINGS
+============================================================ */
+function renderSettings(){
+  return `
+    <div class="settings-card">
+      <div class="settings-row">
+        <div class="settings-row-info">
+          <div class="settings-row-label">${t("settings_language")}</div>
+          <div class="settings-row-desc">${t("settings_language_desc")}</div>
+        </div>
+        <div class="lang-toggle">
+          <button class="lang-option ${state.language==='en'?'active':''}" data-set-language="en">${t("lang_en")}</button>
+          <button class="lang-option ${state.language==='es'?'active':''}" data-set-language="es">${t("lang_es")}</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-card" style="margin-top:16px;">
+      <div class="settings-card-head">
+        <div class="settings-row-label">${t("settings_custom_strings_title")}</div>
+        <div class="settings-row-desc">${t("settings_custom_strings_desc")}</div>
+      </div>
+      ${CUSTOMIZABLE_KEYS.map(key => `
+        <div class="settings-row custom-string-row">
+          <div class="settings-row-info">
+            <div class="settings-row-label">${TRANSLATIONS.en[key]}</div>
+          </div>
+          <div class="custom-string-field">
+            <input type="text" class="custom-string-input" data-custom-key="${key}" value="${esc(t(key))}">
+            <button class="btn-reset-string" data-reset-custom="${key}" title="${t("btn_reset")}">↺</button>
+          </div>
+        </div>
+      `).join("")}
+    </div>
+
+    <div class="settings-more">${t("settings_more_soon")}</div>
+  `;
+}
+
 function renderLocked(kind){
   const copy = kind==="recon"
     ? {icon:"👥", title:"Recon — Community Discover", tag:"Planned after initial testing", body:"Once the core loadout flow is solid, Recon will let you browse recipes other people have shared, save them straight into your Armory, and publish your own for others to find."}
@@ -1175,7 +1429,7 @@ function renderModal(){
       <div class="modal-backdrop" data-close-modal>
         <div class="modal" data-stop style="max-width:420px;">
           <div class="modal-head">
-            <h2>${MEAL_ICON[meal] || ""} ${esc(meal)} — ${esc(day)}</h2>
+            <h2>${MEAL_ICON[meal] || ""} ${mealLabel(meal)} — ${dayLabel(day)}</h2>
             <button class="modal-close" data-close-modal>✕</button>
           </div>
           <div class="modal-body">
@@ -1206,15 +1460,15 @@ function renderModal(){
     root.innerHTML = `
       <div class="modal-backdrop" data-close-modal>
         <div class="modal" data-stop style="max-width:420px;">
-          <div class="modal-head"><h2>New Cuisine Category</h2><button class="modal-close" data-close-modal>✕</button></div>
+          <div class="modal-head"><h2>${t("modal_new_cuisine_title")}</h2><button class="modal-close" data-close-modal>✕</button></div>
           <div class="modal-body">
             <div class="add-form">
-              <label>Category name</label>
+              <label>${t("label_category_name")}</label>
               <input type="text" id="f-cuisine-name" placeholder="e.g. Cajun, Korean, Vegan Fusion" autofocus>
               <div class="hint">This becomes a filter chip on the Armory page right away, and you can assign it to any recipe you add.</div>
               <div class="modal-footer">
-                <button type="button" class="btn btn-accent" data-save-cuisine>Add category</button>
-                <button type="button" class="btn btn-ghost" data-close-modal>Cancel</button>
+                <button type="button" class="btn btn-accent" data-save-cuisine>${t("btn_add_category_full")}</button>
+                <button type="button" class="btn btn-ghost" data-close-modal>${t("btn_cancel")}</button>
               </div>
             </div>
           </div>
@@ -1229,12 +1483,12 @@ function renderModal(){
     root.innerHTML = `
       <div class="modal-backdrop" data-close-modal>
         <div class="modal" data-stop style="max-width:420px;">
-          <div class="modal-head"><h2>Delete Recipe?</h2><button class="modal-close" data-close-modal>✕</button></div>
+          <div class="modal-head"><h2>${t("modal_delete_title")}</h2><button class="modal-close" data-close-modal>✕</button></div>
           <div class="modal-body">
-            <p style="font-size:14px; color:var(--ink); line-height:1.5; margin:0 0 4px;">Delete <strong>${esc(r ? r.title : "this recipe")}</strong> from your Armory? This can't be undone.</p>
+            <p style="font-size:14px; color:var(--ink); line-height:1.5; margin:0 0 4px;">${tf("modal_delete_body", {title: `<strong>${esc(r ? r.title : "this recipe")}</strong>`})}</p>
             <div class="modal-footer">
-              <button class="btn btn-danger" data-confirm-delete-recipe="${state.modal.recipeId}">Delete</button>
-              <button class="btn btn-ghost" data-close-modal>Cancel</button>
+              <button class="btn btn-danger" data-confirm-delete-recipe="${state.modal.recipeId}">${t("btn_delete")}</button>
+              <button class="btn btn-ghost" data-close-modal>${t("btn_cancel")}</button>
             </div>
           </div>
         </div>
@@ -1249,25 +1503,25 @@ function renderModal(){
       <div class="modal-backdrop" data-close-modal>
         <div class="modal" data-stop>
           <div class="modal-head">
-            <div><h2>${r.emoji} ${esc(r.title)}</h2><div class="pool-item-sub" style="margin-top:6px;">${r.time} MIN · ${r.servings} SERVINGS</div></div>
+            <div><h2>${r.emoji} ${esc(r.title)}</h2><div class="pool-item-sub" style="margin-top:6px;">${r.time} ${t("lbl_min")} · ${r.servings} ${t("lbl_servings_short")}</div></div>
             <button class="modal-close" data-close-modal>✕</button>
           </div>
           <div class="modal-body">
-            <h4>Nutrition / serving</h4>
+            <h4>${t("label_nutrition")}</h4>
             <div class="nutri-row">
-              <div class="nutri-chip"><div class="n">${r.calories}</div><div class="l">CAL</div></div>
-              <div class="nutri-chip"><div class="n">${r.protein}g</div><div class="l">PROTEIN</div></div>
-              <div class="nutri-chip"><div class="n">${r.carbs}g</div><div class="l">CARBS</div></div>
-              <div class="nutri-chip"><div class="n">${r.fat}g</div><div class="l">FAT</div></div>
-              <div class="nutri-chip"><div class="n">${r.fiber||0}g</div><div class="l">FIBER</div></div>
-              <div class="nutri-chip"><div class="n">${r.calories*r.servings}</div><div class="l">TOTAL CAL</div></div>
+              <div class="nutri-chip"><div class="n">${r.calories}</div><div class="l">${t("lbl_cal")}</div></div>
+              <div class="nutri-chip"><div class="n">${r.protein}g</div><div class="l">${t("lbl_protein_short")}</div></div>
+              <div class="nutri-chip"><div class="n">${r.carbs}g</div><div class="l">${t("lbl_carbs_short")}</div></div>
+              <div class="nutri-chip"><div class="n">${r.fat}g</div><div class="l">${t("lbl_fat_short")}</div></div>
+              <div class="nutri-chip"><div class="n">${r.fiber||0}g</div><div class="l">${t("lbl_fiber_short")}</div></div>
+              <div class="nutri-chip"><div class="n">${r.calories*r.servings}</div><div class="l">${t("lbl_total_cal")}</div></div>
             </div>
-            <h4>Ingredients</h4>
+            <h4>${t("label_ingredients")}</h4>
             <ul class="ing-list">${r.ingredients.map(i=>`<li><span class="q">${fmtQty(i.qty)}${i.unit?' '+esc(i.unit):''}</span>${esc(i.name)}</li>`).join("")}</ul>
-            <h4>Steps</h4>
+            <h4>${t("label_steps")}</h4>
             <ol class="step-list">${r.steps.map(s=>`<li>${esc(s)}</li>`).join("")}</ol>
             ${(r.links && r.links.length) ? `
-              <h4>Reference Links</h4>
+              <h4>${t("label_links")}</h4>
               ${r.links.map(link => {
                 const vid = getYouTubeId(link);
                 if(vid){
@@ -1281,11 +1535,11 @@ function renderModal(){
               }).join("")}
             ` : ""}
             <div class="modal-footer">
-              <button class="btn btn-accent" data-add-cart="${r.id}" data-close-after>Add to loadout</button>
-              <button class="btn btn-ghost" data-edit-recipe="${r.id}">Edit</button>
-              <button class="btn btn-ghost" data-close-modal>Close</button>
+              <button class="btn btn-accent" data-add-cart="${r.id}" data-close-after>${t("btn_add_to_loadout")}</button>
+              <button class="btn btn-ghost" data-edit-recipe="${r.id}">${t("btn_edit")}</button>
+              <button class="btn btn-ghost" data-close-modal>${t("btn_close")}</button>
             </div>
-            <button class="btn-danger-text" data-delete-recipe="${r.id}" style="margin-top:12px;">Delete Recipe</button>
+            <button class="btn-danger-text" data-delete-recipe="${r.id}" style="margin-top:12px;">${t("btn_delete_recipe")}</button>
           </div>
         </div>
       </div>
@@ -1300,19 +1554,19 @@ function renderModal(){
     root.innerHTML = `
       <div class="modal-backdrop" data-close-modal>
         <div class="modal" data-stop>
-          <div class="modal-head"><h2>${isEditing ? "Edit Recipe" : "Add Recipe to Armory"}</h2><button class="modal-close" data-close-modal>✕</button></div>
+          <div class="modal-head"><h2>${isEditing ? t("modal_edit_title") : t("modal_add_title")}</h2><button class="modal-close" data-close-modal>✕</button></div>
           <div class="modal-body">
             ${!isEditing ? `
               <div class="subtab-row">
-                <button class="subtab ${sub==='link'?'active':''}" data-subtab="link">Paste a link</button>
-                <button class="subtab ${sub==='manual'?'active':''}" data-subtab="manual">Enter manually</button>
+                <button class="subtab ${sub==='link'?'active':''}" data-subtab="link">${t("tab_paste_link")}</button>
+                <button class="subtab ${sub==='manual'?'active':''}" data-subtab="manual">${t("tab_manual")}</button>
               </div>
             ` : ""}
             ${sub === "link" ? `
               <label>Recipe URL</label>
               <input type="text" id="f-link" placeholder="https://example.com/some-recipe" value="${esc(state.modal.linkValue||'')}">
               <div class="hint">Works best on recipe sites with structured recipe data. If a link doesn't parse, try the AI-assisted option below instead — it works on almost anything.</div>
-              <div class="modal-footer"><button class="btn btn-accent" id="parse-btn">${state.modal.parsing ? "Parsing…" : "Parse Recipe"}</button></div>
+              <div class="modal-footer"><button class="btn btn-accent" id="parse-btn">${state.modal.parsing ? t("btn_parsing") : t("btn_parse_recipe")}</button></div>
               ${state.modal.parsing ? `<div class="parse-note">Fetching the page and reading its recipe data…</div>` : ""}
               ${state.modal.parseError ? `<div class="parse-note parse-error">${esc(state.modal.parseError)} Try the AI-assisted option below, or switch to Enter Manually.</div>` : ""}
 
@@ -1327,35 +1581,35 @@ function renderModal(){
                 <label style="margin-top:14px;">Paste the AI's response here</label>
                 <textarea id="f-ai-response" placeholder='{"title": "...", "servings": 4, ...}'></textarea>
                 <div class="modal-footer">
-                  <button class="btn btn-accent" data-parse-ai-response>Use This</button>
+                  <button class="btn btn-accent" data-parse-ai-response>${t("btn_use_this")}</button>
                 </div>
               </div>
             ` : `
               ${d.fromParse ? `<div class="parse-note">Parsed from the link — double-check everything (especially nutrition) before saving.</div>` : ""}
               <div class="add-form" id="add-form">
-                <label>Recipe title</label>
-                <input type="text" id="f-title" value="${esc(d.title||'')}" placeholder="e.g. Weeknight Veggie Curry">
+                <label>${t("label_title")}</label>
+                <input type="text" id="f-title" value="${esc(d.title||'')}" placeholder="${t("ph_recipe_title")}">
                 <div class="row2">
-                  <div><label>Servings it makes</label><input type="number" id="f-servings" min="1" max="12" value="${d.servings||4}"></div>
-                  <div><label>Prep time (minutes)</label><input type="number" id="f-time" min="1" value="${d.time||30}"></div>
+                  <div><label>${t("label_servings")}</label><input type="number" id="f-servings" min="1" max="12" value="${d.servings||4}"></div>
+                  <div><label>${t("label_time")}</label><input type="number" id="f-time" min="1" value="${d.time||30}"></div>
                 </div>
                 <div class="row2">
                   <div>
-                    <label>Meal type(s)</label>
+                    <label>${t("label_meals")}</label>
                     <select id="f-meals" multiple size="3">
-                      <option value="breakfast" ${d.meals&&d.meals.includes('breakfast')?'selected':''}>Breakfast</option>
-                      <option value="lunch" ${!d.meals||d.meals.includes('lunch')?'selected':''}>Lunch</option>
-                      <option value="dinner" ${!d.meals||d.meals.includes('dinner')?'selected':''}>Dinner</option>
+                      <option value="breakfast" ${d.meals&&d.meals.includes('breakfast')?'selected':''}>${mealLabel("breakfast")}</option>
+                      <option value="lunch" ${!d.meals||d.meals.includes('lunch')?'selected':''}>${mealLabel("lunch")}</option>
+                      <option value="dinner" ${!d.meals||d.meals.includes('dinner')?'selected':''}>${mealLabel("dinner")}</option>
                     </select>
                   </div>
                   <div>
-                    <label>Cuisine</label>
+                    <label>${t("label_cuisine")}</label>
                     <input type="text" id="f-cuisine" list="cuisine-options" value="${esc(d.cuisine||'')}" placeholder="e.g. Italian, Colombian…">
                     <datalist id="cuisine-options">${allCuisines().map(c=>`<option value="${esc(c)}">`).join("")}</datalist>
                     <div class="hint">Pick one or type a new one — it's added to your filters.</div>
                   </div>
                 </div>
-                <label>Nutrition per serving</label>
+                <label>${t("label_nutrition")}</label>
                 <div class="row5">
                   <div><input type="number" id="f-cal" placeholder="Calories" value="${d.calories||''}"></div>
                   <div><input type="number" id="f-protein" placeholder="Protein g" value="${d.protein||''}"></div>
@@ -1363,23 +1617,23 @@ function renderModal(){
                   <div><input type="number" id="f-fat" placeholder="Fat g" value="${d.fat||''}"></div>
                   <div><input type="number" id="f-fiber" placeholder="Fiber g" value="${d.fiber||''}"></div>
                 </div>
-                <label>Ingredients — one per line: qty, unit, name, category</label>
+                <label>${t("label_ingredients")} — one per line: qty, unit, name, category</label>
                 <textarea id="f-ingredients" placeholder="2, cups, spinach, Produce
 1, lb, ground beef, Protein
 1, cup, rice, Pantry">${esc(d.ingredientsRaw||'')}</textarea>
                 <div class="hint">Category should be one of Produce, Protein, Dairy, Bakery, Pantry, Other. Leave unit blank for whole items, e.g. "2,,avocados,Produce".</div>
-                <label>Steps — one per line</label>
+                <label>${t("label_steps")} — one per line</label>
                 <textarea id="f-steps" placeholder="Preheat oven to 400°F.
 Toss vegetables with oil and roast 20 minutes.
 Serve warm.">${esc(d.stepsRaw||'')}</textarea>
                 <div class="hint">Leave blank to use generic placeholder steps.</div>
-                <label>Reference Links — one per line (optional)</label>
+                <label>${t("label_links")} — one per line (optional)</label>
                 <textarea id="f-links" placeholder="https://original-recipe-site.com/recipe
 https://youtube.com/watch?v=...">${esc(d.linksRaw||'')}</textarea>
                 <div class="hint">The original link (if any) is added automatically. A YouTube link here plays as a video on the recipe's Details page.</div>
                 <div class="modal-footer">
-                  <button type="button" class="btn btn-accent" data-save-recipe>${isEditing ? "Save Changes" : "Save to Armory"}</button>
-                  <button type="button" class="btn btn-ghost" data-close-modal>Cancel</button>
+                  <button type="button" class="btn btn-accent" data-save-recipe>${isEditing ? t("btn_save_changes") : t("btn_save_to_armory")}</button>
+                  <button type="button" class="btn btn-ghost" data-close-modal>${t("btn_cancel")}</button>
                 </div>
               </div>
             `}
@@ -1727,7 +1981,7 @@ function handleAddCuisineSubmit(){
 
 function handleAddRecipeSubmit(){
   const title = document.getElementById("f-title").value.trim();
-  if(!title){ showToast("Give your recipe a title before saving"); return; }
+  if(!title){ showToast(t("toast_need_title")); return; }
   const servings = parseInt(document.getElementById("f-servings").value,10) || 4;
   const time = parseInt(document.getElementById("f-time").value,10) || 30;
   const meals = Array.from(document.getElementById("f-meals").selectedOptions).map(o=>o.value);
@@ -1768,7 +2022,7 @@ function handleAddRecipeSubmit(){
         title, servings, time, meals: finalMeals, cuisine: finalCuisine,
         links, calories, protein, carbs, fat, fiber, ingredients, steps,
       });
-      showToast(`${title} updated`);
+      showToast(tf("toast_updated", {title}));
     } else {
       showToast("Couldn't find that recipe to update");
     }
@@ -1780,7 +2034,7 @@ function handleAddRecipeSubmit(){
       links,
       calories, protein, carbs, fat, fiber, ingredients, steps,
     });
-    showToast(`${title} saved to Armory`);
+    showToast(tf("toast_saved", {title}));
   }
   state.modal = null;
   state.section = "armory";
@@ -1802,13 +2056,13 @@ function ingredientPopoverHTML(){
         <div class="ing-pop-screen"><span class="ing-pop-emoji">${info.emoji}</span></div>
         <span class="ing-pop-title">${esc(titleCase)}</span>
       </div>
-      ${!info.known ? `<div class="info-unknown">No dex entry yet — showing general info for this category.</div>` : ""}
-      <div class="info-row"><span class="info-label">Store Section</span><span class="info-value">${esc(info.aisle)}</span></div>
-      ${info.brands.length ? `<div class="info-row"><span class="info-label">Common Brands</span><div class="info-chips">${info.brands.map(b=>`<span class="info-chip">${esc(b)}</span>`).join("")}</div></div>` : ""}
-      ${info.altNames.length ? `<div class="info-row"><span class="info-label">Also Called</span><div class="info-chips">${info.altNames.map(n=>`<span class="info-chip alt">${esc(n)}</span>`).join("")}</div></div>` : ""}
-      <div class="info-row"><span class="info-label">Shelf Life</span><span class="info-value">${esc(info.shelfLife)}</span></div>
-      ${info.substitute ? `<div class="info-row"><span class="info-label">Good Substitute</span><span class="info-value">${esc(info.substitute)}</span></div>` : ""}
-      <div class="info-row" style="margin-bottom:0;"><span class="info-label">Shopper's Tip</span><span class="info-value">${esc(info.tip)}</span></div>
+      ${!info.known ? `<div class="info-unknown">${t("info_no_entry")}</div>` : ""}
+      <div class="info-row"><span class="info-label">${t("info_store_section")}</span><span class="info-value">${esc(info.aisle)}</span></div>
+      ${info.brands.length ? `<div class="info-row"><span class="info-label">${t("info_common_brands")}</span><div class="info-chips">${info.brands.map(b=>`<span class="info-chip">${esc(b)}</span>`).join("")}</div></div>` : ""}
+      ${info.altNames.length ? `<div class="info-row"><span class="info-label">${t("info_also_called")}</span><div class="info-chips">${info.altNames.map(n=>`<span class="info-chip alt">${esc(n)}</span>`).join("")}</div></div>` : ""}
+      <div class="info-row"><span class="info-label">${t("info_shelf_life")}</span><span class="info-value">${esc(info.shelfLife)}</span></div>
+      ${info.substitute ? `<div class="info-row"><span class="info-label">${t("info_good_substitute")}</span><span class="info-value">${esc(info.substitute)}</span></div>` : ""}
+      <div class="info-row" style="margin-bottom:0;"><span class="info-label">${t("info_shoppers_tip")}</span><span class="info-value">${esc(info.tip)}</span></div>
     </div>
   `;
 }
@@ -1849,6 +2103,8 @@ function saveState(){
       visibleDayNutrients: [...state.visibleDayNutrients],
       extraItems: state.extraItems,
       customCuisines: state.customCuisines,
+      language: state.language,
+      customStrings: state.customStrings,
       nextRecipeId, nextCartId, nextPegId, nextExtraId,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot));
@@ -1871,6 +2127,10 @@ function loadState(){
     if(Array.isArray(d.visibleDayNutrients)) state.visibleDayNutrients = new Set(d.visibleDayNutrients);
     if(Array.isArray(d.extraItems)) state.extraItems = d.extraItems;
     if(Array.isArray(d.customCuisines)) state.customCuisines = d.customCuisines;
+    if(typeof d.language === "string" && TRANSLATIONS[d.language]) state.language = d.language;
+    if(d.customStrings && typeof d.customStrings === "object"){
+      state.customStrings = {en: d.customStrings.en||{}, es: d.customStrings.es||{}};
+    }
     if(typeof d.nextRecipeId === "number") nextRecipeId = d.nextRecipeId;
     if(typeof d.nextCartId === "number") nextCartId = d.nextCartId;
     if(typeof d.nextPegId === "number") nextPegId = d.nextPegId;
@@ -1885,6 +2145,7 @@ function render(){
   if(state.section === "armory") app.innerHTML = renderArmory();
   else if(state.section === "builder") app.innerHTML = renderBuilder();
   else if(state.section === "supply") app.innerHTML = renderSupply();
+  else if(state.section === "settings") app.innerHTML = renderSettings();
   else app.innerHTML = renderLocked(state.section);
   renderModal();
   document.getElementById("ing-pop-root").innerHTML = ingredientPopoverHTML();
@@ -1913,6 +2174,17 @@ document.addEventListener("click", (e) => {
 
   const sectionBtn = e.target.closest("[data-section]");
   if(sectionBtn){ state.section = sectionBtn.dataset.section; state.ingredientPopover = null; render(); return; }
+
+  const setLangBtn = e.target.closest("[data-set-language]");
+  if(setLangBtn){ state.language = setLangBtn.dataset.setLanguage; render(); return; }
+
+  const resetStringBtn = e.target.closest("[data-reset-custom]");
+  if(resetStringBtn){
+    const key = resetStringBtn.dataset.resetCustom;
+    if(state.customStrings[state.language]) delete state.customStrings[state.language][key];
+    render();
+    return;
+  }
 
   const filterBtn = e.target.closest("[data-filter]");
   if(filterBtn){ state.filter = filterBtn.dataset.filter; render(); return; }
@@ -1985,7 +2257,7 @@ document.addEventListener("click", (e) => {
     const r = recipeById(id);
     state.recipes = state.recipes.filter(rec => rec.id !== id);
     state.modal = null;
-    showToast(`${r ? r.title : "Recipe"} deleted`);
+    showToast(tf("toast_deleted", {title: r ? r.title : "Recipe"}));
     render();
     return;
   }
@@ -2026,7 +2298,7 @@ document.addEventListener("click", (e) => {
   if(confirmBtn){
     state.confirmedOnce = true;
     state.section = "supply";
-    showToast("Loadout confirmed — supply list generated");
+    showToast(t("toast_confirmed"));
     render();
     return;
   }
@@ -2061,6 +2333,19 @@ document.addEventListener("keydown", (e) => {
     e.preventDefault();
     addExtraItem();
   }
+  if(e.key === "Enter" && e.target && e.target.classList.contains("custom-string-input")){
+    e.target.blur();
+  }
+});
+document.addEventListener("change", (e) => {
+  const input = e.target.closest(".custom-string-input");
+  if(!input) return;
+  const key = input.dataset.customKey;
+  const val = input.value.trim();
+  if(!state.customStrings[state.language]) state.customStrings[state.language] = {};
+  if(val) state.customStrings[state.language][key] = val;
+  else delete state.customStrings[state.language][key];
+  render();
 });
 
 function hexDragImage(label){
