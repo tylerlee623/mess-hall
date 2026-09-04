@@ -328,9 +328,6 @@
   .subtab.active{background:var(--accent); border-color:var(--accent); color:#1A1502;}
   .parse-note{background:var(--panel-2); border-left:3px solid var(--accent); padding:8px 12px; font-size:12px; color:var(--accent); font-family:var(--mono); margin-bottom:14px; border-radius:3px; line-height:1.5;}
   .parse-note.parse-error{border-left-color:var(--brick); color:var(--brick);}
-  .ai-fallback{background:var(--panel-2); border:1px solid var(--line); border-radius:6px; padding:14px 16px; margin-top:16px;}
-  .mini-header{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:4px;}
-  .mh-title{font-family:var(--cond); font-weight:700; font-size:14px; text-transform:uppercase; letter-spacing:0.04em; color:var(--accent);}
 
   .add-form label{display:block; font-size:12px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:0.03em; margin:12px 0 5px; font-family:var(--cond);}
   .add-form input, .add-form select, .add-form textarea{width:100%; border:1.5px solid var(--line); border-radius:4px; padding:9px 10px; font-family:var(--body); font-size:13.5px; background:var(--panel); color:var(--ink);}
@@ -658,7 +655,7 @@ const TRANSLATIONS = {
     stat_lightest_day:"Lightest Day", stat_days_full:"Days Fully Planned", stat_servings_equipped:"Servings Equipped",
     stat_pool_recipes:"Recipes in Pool", stat_snacks_equipped:"Snacks Equipped",
     label_calories:"Calories", label_fiber:"Fiber", label_daily_nutrition:"Daily Nutrition",
-    btn_parse_recipe:"Parse Recipe", btn_parsing:"Parsing…", btn_use_this:"Use This",
+    btn_parse_recipe:"Parse Recipe", btn_parsing:"Parsing…",
     ph_recipe_title:"e.g. Weeknight Veggie Curry",
     modal_new_cuisine_title:"New Cuisine Category", label_category_name:"Category name", btn_add_category_full:"Add category",
     modal_delete_title:"Delete Recipe?", modal_delete_body:"Delete {title} from your Armory? This can't be undone.", btn_delete:"Delete",
@@ -680,6 +677,7 @@ const TRANSLATIONS = {
     modal_add_title:"Add Recipe to Armory", modal_edit_title:"Edit Recipe",
     tab_paste_link:"Paste a link", tab_manual:"Enter manually",
     label_title:"Recipe title", label_servings:"Servings it makes", label_time:"Prep time (minutes)", label_meals:"Meal type(s)",
+    label_basics:"Basics", label_recipe_url:"Recipe URL",
     label_nutrition:"Nutrition / serving", label_ingredients:"Ingredients", label_steps:"Steps", label_links:"Reference Links",
 
     settings_language:"Language", settings_language_desc:"Choose the language Mess Hall displays in.",
@@ -735,7 +733,7 @@ const TRANSLATIONS = {
     stat_lightest_day:"Día Más Bajo", stat_days_full:"Días Completos", stat_servings_equipped:"Porciones Asignadas",
     stat_pool_recipes:"Recetas en el Grupo", stat_snacks_equipped:"Meriendas Asignadas",
     label_calories:"Calorías", label_fiber:"Fibra", label_daily_nutrition:"Nutrición Diaria",
-    btn_parse_recipe:"Procesar Receta", btn_parsing:"Procesando…", btn_use_this:"Usar Esto",
+    btn_parse_recipe:"Procesar Receta", btn_parsing:"Procesando…",
     ph_recipe_title:"ej. Curry de Vegetales",
     modal_new_cuisine_title:"Nueva Categoría de Cocina", label_category_name:"Nombre de la categoría", btn_add_category_full:"Agregar categoría",
     modal_delete_title:"¿Eliminar Receta?", modal_delete_body:"¿Eliminar {title} de tu Arsenal? Esto no se puede deshacer.", btn_delete:"Eliminar",
@@ -757,6 +755,7 @@ const TRANSLATIONS = {
     modal_add_title:"Agregar Receta al Arsenal", modal_edit_title:"Editar Receta",
     tab_paste_link:"Pegar un enlace", tab_manual:"Ingresar manualmente",
     label_title:"Título de la receta", label_servings:"Porciones que rinde", label_time:"Tiempo de preparación (minutos)", label_meals:"Tipo(s) de comida",
+    label_basics:"Datos básicos", label_recipe_url:"URL de la receta",
     label_nutrition:"Nutrición / porción", label_ingredients:"Ingredientes", label_steps:"Pasos", label_links:"Enlaces de Referencia",
 
     settings_language:"Idioma", settings_language_desc:"Elige el idioma en el que se muestra Mess Hall.",
@@ -1563,30 +1562,16 @@ function renderModal(){
               </div>
             ` : ""}
             ${sub === "link" ? `
-              <label>Recipe URL</label>
+              <label>${t("label_recipe_url")}</label>
               <input type="text" id="f-link" placeholder="https://example.com/some-recipe" value="${esc(state.modal.linkValue||'')}">
-              <div class="hint">Parsed automatically with AI in most cases. If that doesn't work, try the AI-assisted option below, or switch to Enter Manually.</div>
+              <div class="hint">AI reads the page and fills in the recipe for you — works on almost any site.</div>
               <div class="modal-footer"><button class="btn btn-accent" id="parse-btn">${state.modal.parsing ? t("btn_parsing") : t("btn_parse_recipe")}</button></div>
-              ${state.modal.parsing ? `<div class="parse-note">Reading the recipe with AI (falling back automatically if needed)…</div>` : ""}
-              ${state.modal.parseError ? `<div class="parse-note parse-error">${esc(state.modal.parseError)} Try the AI-assisted option below, or switch to Enter Manually.</div>` : ""}
-
-              <div class="ai-fallback">
-                <div class="mini-header"><span class="mh-title">AI-assisted import</span></div>
-                <p class="hint" style="margin-top:0;">Copy a ready-made prompt (your link gets dropped in automatically), paste it into ChatGPT, Claude, or any AI you use, then paste its reply back below. Works even on sites that don't parse automatically, and even if your AI can't browse links — it'll ask you to paste the recipe text instead.</p>
-                <button class="btn btn-ghost btn-sm" data-copy-ai-prompt>📋 Copy AI Prompt</button>
-                ${state.modal.showPromptFallback ? `
-                  <div class="hint" style="margin-top:8px;">Couldn't auto-copy — click inside, select all, and copy manually:</div>
-                  <textarea readonly onclick="this.select()" style="min-height:100px; font-family:var(--mono); font-size:11px;">${esc(state.modal.showPromptFallback)}</textarea>
-                ` : ""}
-                <label style="margin-top:14px;">Paste the AI's response here</label>
-                <textarea id="f-ai-response" placeholder='{"title": "...", "servings": 4, ...}'></textarea>
-                <div class="modal-footer">
-                  <button class="btn btn-accent" data-parse-ai-response>${t("btn_use_this")}</button>
-                </div>
-              </div>
+              ${state.modal.parsing ? `<div class="parse-note">Reading the recipe…</div>` : ""}
+              ${state.modal.parseError ? `<div class="parse-note parse-error">${esc(state.modal.parseError)} Double-check the link and try again, or switch to Enter Manually.</div>` : ""}
             ` : `
               ${d.fromParse ? `<div class="parse-note">Parsed from the link — double-check everything (especially nutrition) before saving.</div>` : ""}
               <div class="add-form" id="add-form">
+                <h4>${t("label_basics")}</h4>
                 <label>${t("label_title")}</label>
                 <input type="text" id="f-title" value="${esc(d.title||'')}" placeholder="${t("ph_recipe_title")}">
                 <div class="row2">
@@ -1610,7 +1595,9 @@ function renderModal(){
                     <div class="hint">Pick one or type a new one — it's added to your filters.</div>
                   </div>
                 </div>
-                <label>${t("label_nutrition")}</label>
+
+                <h4>${t("label_nutrition")}</h4>
+                <div class="hint" style="margin:0 0 8px;">Per serving</div>
                 <div class="row5">
                   <div><input type="number" id="f-cal" placeholder="Calories" value="${d.calories||''}"></div>
                   <div><input type="number" id="f-protein" placeholder="Protein g" value="${d.protein||''}"></div>
@@ -1618,20 +1605,27 @@ function renderModal(){
                   <div><input type="number" id="f-fat" placeholder="Fat g" value="${d.fat||''}"></div>
                   <div><input type="number" id="f-fiber" placeholder="Fiber g" value="${d.fiber||''}"></div>
                 </div>
-                <label>${t("label_ingredients")} — one per line: qty, unit, name, category</label>
+
+                <h4>${t("label_ingredients")}</h4>
+                <div class="hint" style="margin:0 0 8px;">One per line: qty, unit, name, category</div>
                 <textarea id="f-ingredients" placeholder="2, cups, spinach, Produce
 1, lb, ground beef, Protein
 1, cup, rice, Pantry">${esc(d.ingredientsRaw||'')}</textarea>
                 <div class="hint">Category should be one of Produce, Protein, Dairy, Bakery, Pantry, Other. Leave unit blank for whole items, e.g. "2,,avocados,Produce".</div>
-                <label>${t("label_steps")} — one per line</label>
+
+                <h4>${t("label_steps")}</h4>
+                <div class="hint" style="margin:0 0 8px;">One per line</div>
                 <textarea id="f-steps" placeholder="Preheat oven to 400°F.
 Toss vegetables with oil and roast 20 minutes.
 Serve warm.">${esc(d.stepsRaw||'')}</textarea>
                 <div class="hint">Leave blank to use generic placeholder steps.</div>
-                <label>${t("label_links")} — one per line (optional)</label>
+
+                <h4>${t("label_links")}</h4>
+                <div class="hint" style="margin:0 0 8px;">One per line, optional</div>
                 <textarea id="f-links" placeholder="https://original-recipe-site.com/recipe
 https://youtube.com/watch?v=...">${esc(d.linksRaw||'')}</textarea>
                 <div class="hint">The original link (if any) is added automatically. A YouTube link here plays as a video on the recipe's Details page.</div>
+
                 <div class="modal-footer">
                   <button type="button" class="btn btn-accent" data-save-recipe>${isEditing ? t("btn_save_changes") : t("btn_save_to_armory")}</button>
                   <button type="button" class="btn btn-ghost" data-close-modal>${t("btn_cancel")}</button>
@@ -1866,123 +1860,6 @@ async function fetchAndParseRecipeViaAI(url){
     stepsRaw,
     linksRaw: url,
   };
-}
-
-function buildAIPrompt(url){
-  const target = url || "[paste the recipe link OR the full recipe text here]";
-  return `I'm going to give you a recipe (either a link, or pasted recipe text). Convert it into this exact JSON format and output ONLY the JSON — no other text, no markdown code fences, no explanation.
-
-{
-  "title": "Recipe Name",
-  "servings": 4,
-  "time": 30,
-  "cuisine": "e.g. Italian, Mexican, Asian, American — leave blank if unsure",
-  "calories": 0,
-  "protein": 0,
-  "carbs": 0,
-  "fat": 0,
-  "fiber": 0,
-  "youtubeUrl": "",
-  "ingredients": [
-    {"qty": 2, "unit": "cups", "name": "ingredient name", "category": "Produce"}
-  ],
-  "steps": ["Step 1", "Step 2"]
-}
-
-Rules:
-- "time" is total time in minutes (prep + cook combined).
-- Nutrition values are per serving. Follow these steps in order:
-  1. First, look for explicit nutrition facts on the page (often in a "Nutrition Facts" box near the recipe card). If present, use those exact numbers.
-  2. If no nutrition facts are listed anywhere, make a genuine, careful estimate based on the actual ingredients and quantities in the recipe, divided by the serving count. Put in real effort here — don't skip straight to guessing.
-  3. If you can't produce an estimate you're reasonably confident in, use 0 for that field instead. Do NOT fabricate, round to a "plausible-sounding" number, or hallucinate a value just to fill the field in — leaving it at 0 is strongly preferred over a number that's just made up. Accuracy matters more than completeness here.
-- "youtubeUrl": if the page embeds or clearly links to a YouTube video of the recipe being made, put that video's URL here. Leave it as an empty string "" if there isn't one — don't search elsewhere for one or guess a link that might not actually match this recipe.
-- "category" for every ingredient must be exactly one of: Produce, Protein, Dairy, Bakery, Pantry, Other.
-- "unit" should be short (cups, tbsp, tsp, oz, lb, g, cans, cloves, etc.) or an empty string "" for whole items like "2 onions".
-
-Recipe: ${target}
-If you can't access links directly, ask me to paste the recipe text instead, then use that.`;
-}
-async function copyToClipboard(text){
-  try{
-    await navigator.clipboard.writeText(text);
-    return true;
-  }catch(err){
-    return false;
-  }
-}
-async function handleCopyAIPrompt(){
-  const linkEl = document.getElementById("f-link");
-  const url = (linkEl ? linkEl.value : (state.modal.linkValue || "")).trim();
-  const prompt = buildAIPrompt(url);
-  const ok = await copyToClipboard(prompt);
-  if(ok){
-    state.modal.showPromptFallback = null;
-    showToast("Prompt copied — paste it into ChatGPT, Claude, or any AI");
-    render();
-  } else {
-    state.modal.showPromptFallback = prompt;
-    showToast("Couldn't auto-copy — select the text below and copy manually");
-    render();
-  }
-}
-function parseAIResponseJSON(text){
-  if(!text) return null;
-  let cleaned = text.trim().replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
-  const start = cleaned.indexOf("{");
-  const end = cleaned.lastIndexOf("}");
-  if(start === -1 || end === -1 || end <= start) return null;
-  let data;
-  try{ data = JSON.parse(cleaned.slice(start, end+1)); }catch(err){ return null; }
-
-  const title = (data.title || "Untitled Recipe").toString().trim();
-  const servings = parseInt(data.servings,10) || 4;
-  const time = parseInt(data.time,10) || 30;
-  const cuisine = data.cuisine ? String(data.cuisine).trim() : "";
-  const ingArr = Array.isArray(data.ingredients) ? data.ingredients : [];
-  const ingredientsRaw = ingArr.map(ing => {
-    const qty = ing && ing.qty !== undefined ? ing.qty : 1;
-    const unit = ing && ing.unit ? String(ing.unit).trim() : "";
-    const name = (ing && ing.name ? String(ing.name).trim() : "ingredient") || "ingredient";
-    const rawCat = ing && ing.category ? String(ing.category).trim() : "";
-    const cat = CAT_ORDER.find(c => c.toLowerCase() === rawCat.toLowerCase()) || "Other";
-    return `${qty}, ${unit}, ${name}, ${cat}`;
-  }).join("\n");
-  const stepsArr = Array.isArray(data.steps) ? data.steps : [];
-  const stepsRaw = stepsArr.map(s=>String(s).trim()).filter(Boolean).join("\n");
-  const youtubeUrl = (data.youtubeUrl && /^https?:\/\//i.test(String(data.youtubeUrl).trim())) ? String(data.youtubeUrl).trim() : "";
-
-  return {
-    title, servings, time, meals:["dinner"], cuisine,
-    calories: Math.round(Number(data.calories))||0,
-    protein: Math.round(Number(data.protein))||0,
-    carbs: Math.round(Number(data.carbs))||0,
-    fat: Math.round(Number(data.fat))||0,
-    fiber: Math.round(Number(data.fiber))||0,
-    ingredientsRaw: ingredientsRaw || "1, , see AI response, Pantry",
-    stepsRaw,
-    youtubeUrl,
-  };
-}
-function handleParseAIResponse(){
-  const el = document.getElementById("f-ai-response");
-  if(!el) return;
-  const text = el.value.trim();
-  if(!text){ showToast("Paste the AI's response first"); return; }
-  const recipe = parseAIResponseJSON(text);
-  if(!recipe){
-    showToast("Couldn't read that as valid JSON — make sure you copied the AI's full reply");
-    return;
-  }
-  const linkEl = document.getElementById("f-link");
-  const url = linkEl ? linkEl.value.trim() : (state.modal.linkValue || "");
-  const linkParts = [];
-  if(url && /^https?:\/\//i.test(url)) linkParts.push(url);
-  if(recipe.youtubeUrl && recipe.youtubeUrl !== url) linkParts.push(recipe.youtubeUrl);
-  recipe.linksRaw = [...new Set(linkParts)].join("\n");
-  delete recipe.youtubeUrl;
-  state.modal = {type:"add", subtab:"manual", linkValue:url, parsing:false, draft:{fromParse:true, ...recipe}};
-  showToast(`${recipe.title} imported — review before saving`);
-  render();
 }
 
 async function handleParseLink(){
@@ -2335,12 +2212,6 @@ document.addEventListener("click", (e) => {
 
   const saveCuisineBtn = e.target.closest("[data-save-cuisine]");
   if(saveCuisineBtn){ handleAddCuisineSubmit(); return; }
-
-  const copyAiPromptBtn = e.target.closest("[data-copy-ai-prompt]");
-  if(copyAiPromptBtn){ handleCopyAIPrompt(); return; }
-
-  const parseAiResponseBtn = e.target.closest("[data-parse-ai-response]");
-  if(parseAiResponseBtn){ handleParseAIResponse(); return; }
 
   const assignBtn = e.target.closest("[data-assign-slot]");
   if(assignBtn){ assignFirstAvailable(parseInt(assignBtn.dataset.assignSlot,10), assignBtn.dataset.slotTarget); return; }
