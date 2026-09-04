@@ -650,8 +650,8 @@ const TRANSLATIONS = {
     btn_add_to_list:"+ Add to list", btn_remove:"Remove", btn_remove_all:"Remove all", btn_remove_batch:"Remove batch",
     btn_add_recipe:"+ Add Recipe", btn_add_category:"+ Custom cuisine",
 
-    filter_all:"All", filter_breakfast:"Breakfast", filter_lunch:"Lunch", filter_dinner:"Dinner",
-    filter_vegetarian:"Vegetarian", filter_highprotein:"High-protein", label_cuisine:"Cuisine",
+    filter_all:"All", filter_breakfast:"Breakfast", filter_lunch:"Lunch", filter_dinner:"Dinner", filter_snack:"Snack",
+    label_cuisine:"Cuisine",
 
     stat_week_total:"Week Total", stat_daily_avg:"Daily Avg", stat_protein:"Protein", stat_carbs:"Carbs", stat_fat:"Fat",
     stat_meals_planned:"Meals Planned", stat_protein_pct:"Protein % of Cal", stat_heaviest_day:"Heaviest Day",
@@ -727,8 +727,8 @@ const TRANSLATIONS = {
     btn_add_to_list:"+ Agregar a la lista", btn_remove:"Eliminar", btn_remove_all:"Eliminar todo", btn_remove_batch:"Eliminar tanda",
     btn_add_recipe:"+ Agregar Receta", btn_add_category:"+ Cocina personalizada",
 
-    filter_all:"Todo", filter_breakfast:"Desayuno", filter_lunch:"Almuerzo", filter_dinner:"Cena",
-    filter_vegetarian:"Vegetariano", filter_highprotein:"Alto en proteína", label_cuisine:"Cocina",
+    filter_all:"Todo", filter_breakfast:"Desayuno", filter_lunch:"Almuerzo", filter_dinner:"Cena", filter_snack:"Merienda",
+    label_cuisine:"Cocina",
 
     stat_week_total:"Total Semanal", stat_daily_avg:"Promedio Diario", stat_protein:"Proteína", stat_carbs:"Carbohidratos", stat_fat:"Grasa",
     stat_meals_planned:"Comidas Planeadas", stat_protein_pct:"% Proteína de Cal", stat_heaviest_day:"Día Más Alto",
@@ -1014,7 +1014,7 @@ function renderTopbar(){
 function renderArmory(){
   const filters = [
     {id:"all", label:t("filter_all")},{id:"breakfast", label:t("filter_breakfast")},{id:"lunch", label:t("filter_lunch")},
-    {id:"dinner", label:t("filter_dinner")},{id:"vegetarian", label:t("filter_vegetarian")},{id:"high-protein", label:t("filter_highprotein")},
+    {id:"dinner", label:t("filter_dinner")},{id:"snack", label:t("filter_snack")},
   ];
   const cuisines = ["all", ...allCuisines()];
   const list = state.recipes.filter(r => {
@@ -1565,9 +1565,9 @@ function renderModal(){
             ${sub === "link" ? `
               <label>Recipe URL</label>
               <input type="text" id="f-link" placeholder="https://example.com/some-recipe" value="${esc(state.modal.linkValue||'')}">
-              <div class="hint">Works best on recipe sites with structured recipe data. If a link doesn't parse, try the AI-assisted option below instead — it works on almost anything.</div>
+              <div class="hint">Parsed automatically with AI in most cases. If that doesn't work, try the AI-assisted option below, or switch to Enter Manually.</div>
               <div class="modal-footer"><button class="btn btn-accent" id="parse-btn">${state.modal.parsing ? t("btn_parsing") : t("btn_parse_recipe")}</button></div>
-              ${state.modal.parsing ? `<div class="parse-note">Fetching the page and reading its recipe data…</div>` : ""}
+              ${state.modal.parsing ? `<div class="parse-note">Reading the recipe with AI (falling back automatically if needed)…</div>` : ""}
               ${state.modal.parseError ? `<div class="parse-note parse-error">${esc(state.modal.parseError)} Try the AI-assisted option below, or switch to Enter Manually.</div>` : ""}
 
               <div class="ai-fallback">
@@ -1596,10 +1596,11 @@ function renderModal(){
                 <div class="row2">
                   <div>
                     <label>${t("label_meals")}</label>
-                    <select id="f-meals" multiple size="3">
+                    <select id="f-meals" multiple size="4">
                       <option value="breakfast" ${d.meals&&d.meals.includes('breakfast')?'selected':''}>${mealLabel("breakfast")}</option>
                       <option value="lunch" ${!d.meals||d.meals.includes('lunch')?'selected':''}>${mealLabel("lunch")}</option>
                       <option value="dinner" ${!d.meals||d.meals.includes('dinner')?'selected':''}>${mealLabel("dinner")}</option>
+                      <option value="snack" ${d.meals&&d.meals.includes('snack')?'selected':''}>${mealLabel("snack")}</option>
                     </select>
                   </div>
                   <div>
@@ -1817,6 +1818,56 @@ async function fetchAndParseRecipe(url){
   };
 }
 
+async function fetchAndParseRecipeViaAI(url){
+  const res = await fetch("/.netlify/functions/parse-recipe", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({url})
+  });
+  let data;
+  try{ data = await res.json(); }catch(err){ data = null; }
+  if(!res.ok || !data || data.error){
+    throw new Error((data && data.error) || `AI parser request failed (${res.status})`);
+  }
+
+  const VALID_MEALS = ["breakfast","lunch","dinner","snack"];
+  const meals = Array.isArray(data.mealType)
+    ? data.mealType.map(m => String(m).toLowerCase()).filter(m => VALID_MEALS.includes(m))
+    : [];
+
+  const ingArr = Array.isArray(data.ingredients) ? data.ingredients : [];
+  const ingredientsRaw = ingArr.map(ing => {
+    const qty = (ing && ing.qty !== null && ing.qty !== undefined) ? ing.qty : 1;
+    const unit = (ing && ing.unit) ? String(ing.unit).trim() : "";
+    const name = (ing && ing.name) ? String(ing.name).trim() : "ingredient";
+    const rawCat = (ing && ing.category) ? String(ing.category).trim() : "";
+    const cat = CAT_ORDER.find(c => c.toLowerCase() === rawCat.toLowerCase()) || "Other";
+    return `${qty}, ${unit}, ${name}, ${cat}`;
+  }).join("\n");
+
+  const stepsArr = Array.isArray(data.steps) ? data.steps : [];
+  const stepsRaw = stepsArr.map(s => String(s).trim()).filter(Boolean).join("\n");
+
+  const nutrition = data.nutritionPerServing || {};
+  const numOrUndef = v => (v === null || v === undefined) ? undefined : Math.round(Number(v));
+
+  return {
+    title: (data.title || "Untitled Recipe").toString().trim(),
+    servings: parseInt(data.servings, 10) || 4,
+    time: parseInt(data.prepTime, 10) || 30,
+    meals: meals.length ? meals : ["dinner"],
+    cuisine: data.cuisine ? String(data.cuisine).trim() : "",
+    calories: numOrUndef(nutrition.calories),
+    protein: numOrUndef(nutrition.protein),
+    carbs: numOrUndef(nutrition.carbs),
+    fat: numOrUndef(nutrition.fat),
+    fiber: numOrUndef(nutrition.fiber),
+    ingredientsRaw: ingredientsRaw || "1, , see original recipe, Pantry",
+    stepsRaw,
+    linksRaw: url,
+  };
+}
+
 function buildAIPrompt(url){
   const target = url || "[paste the recipe link OR the full recipe text here]";
   return `I'm going to give you a recipe (either a link, or pasted recipe text). Convert it into this exact JSON format and output ONLY the JSON — no other text, no markdown code fences, no explanation.
@@ -1947,11 +1998,22 @@ async function handleParseLink(){
   state.modal.parseError = null;
   render();
 
+  // Primary: AI-powered parsing (GPT-4o-mini via Netlify Function) — works on almost any recipe page
+  try{
+    const recipe = await fetchAndParseRecipeViaAI(url);
+    state.modal = {type:"add", subtab:"manual", linkValue:url, parsing:false, draft:{fromParse:true, ...recipe}};
+    render();
+    return;
+  }catch(err){
+    console.warn("AI parser unavailable, falling back to structured-data parsing:", err.message);
+  }
+
+  // Fallback: CORS proxy + schema.org structured recipe data
   try{
     const recipe = await fetchAndParseRecipe(url);
     if(!recipe){
       state.modal = {type:"add", subtab:"link", linkValue:url, parsing:false,
-        parseError:"Couldn't find structured recipe data on that page. Not every site includes it — try a different recipe link, or switch to Enter Manually below."};
+        parseError:"Couldn't automatically parse that page. Try the AI-assisted option below, or switch to Enter Manually."};
       render();
       return;
     }
@@ -1959,7 +2021,7 @@ async function handleParseLink(){
     render();
   }catch(err){
     state.modal = {type:"add", subtab:"link", linkValue:url, parsing:false,
-      parseError:"Couldn't reach that page right now. Double-check the link, or try again in a moment."};
+      parseError:"Couldn't reach that page right now. Double-check the link, try the AI-assisted option below, or switch to Enter Manually."};
     render();
   }
 }
